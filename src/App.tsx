@@ -6,6 +6,50 @@ import { framer } from "framer-plugin"
 import { ChangeEvent, useEffect, useMemo, useRef, useState, useCallback } from "react"
 import { processRecords, parseJSON, importJSON, ImportError } from "./json"
 
+export function App({ collection }: { collection: Collection }) {
+    const [type, setType] = useState<"import" | "export" | null>(null)
+
+    useEffect(() => {
+        framer.showUI({
+            width: 260,
+            height: 330,
+            resizable: false,
+        })
+    }, [])
+
+    return type === "import" ? (
+        <ImportUI collection={collection} />
+    ) : type === "export" ? (
+        <ExportUI collection={collection} />
+    ) : (
+        <MainMenu setType={setType} />
+    )
+}
+
+function MainMenu({ setType }: { setType: (type: "import" | "export") => void }) {
+    return (
+        <div className="import-collection">
+            <div className="intro">
+                <div className="logo">
+                    <ImportIcon />
+                </div>
+                <div className="content">
+                    <h2>JSON Sync</h2>
+                    <p>Import and export CMS content using JSON files.</p>
+                </div>
+            </div>
+            <div className="menu-buttons-container">
+                <MenuButton title="Import" icon={<MenuButtonIcon isImport />} onClick={() => setType("import")} />
+                <MenuButton title="Export" icon={<MenuButtonIcon />} onClick={() => setType("export")} />
+            </div>
+        </div>
+    )
+}
+
+function ExportUI({ collection }: { collection: Collection }) {
+    return
+}
+
 function ImportIcon() {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none">
@@ -118,7 +162,7 @@ function ManageConflicts({ records, onAllConflictsResolved }: ManageConflictsPro
     )
 }
 
-export function App({ collection }: { collection: Collection }) {
+function ImportUI({ collection }: { collection: Collection }) {
     const form = useRef<HTMLFormElement>(null)
     const inputOpenedFromImportButton = useRef(false)
 
@@ -127,14 +171,6 @@ export function App({ collection }: { collection: Collection }) {
     const itemsWithConflict = useMemo(() => result?.items.filter(item => item.action === "conflict") ?? [], [result])
 
     const [isDragging, setIsDragging] = useState(false)
-
-    useEffect(() => {
-        framer.showUI({
-            width: 260,
-            height: 330,
-            resizable: false,
-        })
-    }, [])
 
     useEffect(() => {
         if (itemsWithConflict.length === 0) {
@@ -345,5 +381,34 @@ export function App({ collection }: { collection: Collection }) {
                 </>
             )}
         </form>
+    )
+}
+
+const MenuButton = ({ icon, title, onClick }: { icon: React.ReactElement; title: string; onClick?: () => void }) => {
+    return (
+        <button className="menu-button" onClick={onClick ? () => onClick() : undefined}>
+            {icon}
+            <p>{title}</p>
+        </button>
+    )
+}
+
+function MenuButtonIcon({ isImport = false }: { isImport?: boolean }) {
+    return (
+        <svg
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{
+                rotate: isImport ? "180deg" : "0deg",
+            }}
+        >
+            <path
+                d="M14 0C16.2091 0 18 1.79086 18 4V14C18 16.2091 16.2091 18 14 18H4C1.79086 18 1.61066e-08 16.2091 0 14V4C0 1.79086 1.79086 1.61064e-08 4 0H14ZM9.83887 3.44824C9.39975 3.00913 8.68716 3.00913 8.24805 3.44824L4.00586 7.69043C3.56675 8.12954 3.56675 8.84214 4.00586 9.28125C4.44497 9.72036 5.15757 9.72036 5.59668 9.28125L7.91504 6.96289V13.6689C7.91522 14.2902 8.41981 14.7929 9.04004 14.792C9.66038 14.7931 10.1648 14.2893 10.165 13.668V6.95605L12.4902 9.28125C12.9293 9.72036 13.6429 9.72036 14.082 9.28125C14.5207 8.84211 14.521 8.12941 14.082 7.69043L9.83887 3.44824Z"
+                fill="currentColor"
+            />
+        </svg>
     )
 }
