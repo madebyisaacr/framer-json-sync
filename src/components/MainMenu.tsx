@@ -2,7 +2,7 @@ import Heading from "./Heading"
 
 export default function MainMenu({ setType }: { setType: (type: "import" | "export") => void }) {
     return (
-        <div className="import-collection">
+        <div className="main-menu">
             <Heading title="JSON Sync">Import and export CMS content using JSON files.</Heading>
             <div className="menu-buttons-container">
                 <MenuButton title="Import" icon={<MenuButtonIcon isImport />} onClick={() => setType("import")} />
