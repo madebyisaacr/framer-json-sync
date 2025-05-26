@@ -1,8 +1,6 @@
 {
-  "id": "70f8bb",
-  "name": "Json Sync",
-  "modes": [
-    "canvas"
-  ],
-  "icon": "/icon.svg"
+    "id": "70f8bb",
+    "name": "JSON Sync",
+    "modes": ["collection"],
+    "icon": "/icon.svg"
 }
