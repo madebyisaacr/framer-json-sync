@@ -17,6 +17,6 @@ if (!collection) {
 
 ReactDOM.createRoot(root).render(
     <React.StrictMode>
-        <App collection={collection} />
+        <App collection={collection} exportOnly={collection.readonly} />
     </React.StrictMode>
 )
