@@ -1,9 +1,8 @@
 import type { Collection } from "framer-plugin"
 
 import { framer } from "framer-plugin"
-import { useEffect } from "react"
-import Heading from "./Heading"
-import { exportCollectionAsJSON, convertCollectionToJSON } from "../json-export"
+import { useEffect, useRef, useState } from "react"
+import { exportCollectionAsJSON, convertCollectionToJSON, getDataForJSON } from "../json-export"
 
 export default function ExportUI({ collection }: { collection: Collection }) {
     useEffect(() => {
@@ -46,11 +45,7 @@ export default function ExportUI({ collection }: { collection: Collection }) {
 
     return (
         <div className="export-collection">
-            <div className="preview-container">
-                <div className={`preview-container-table ${collection ? "visible" : ""}`}>
-                    {/* {collection && <PreviewTable collection={collection} />} */}
-                </div>
-            </div>
+            {collection && <Preview collection={collection} />}
 
             <div className="menu-buttons-container">
                 <button disabled={!collection} onClick={copyJSONtoClipboard}>
@@ -60,6 +55,66 @@ export default function ExportUI({ collection }: { collection: Collection }) {
                     Export
                 </button>
             </div>
+        </div>
+    )
+}
+
+function Preview({ collection }: { collection: Collection }) {
+    const containerRef = useRef<HTMLDivElement>(null)
+    const contentRef = useRef<HTMLSpanElement>(null)
+
+    const [previewJSON, setPreviewJSON] = useState<string>()
+    const [showGradient, setShowGradient] = useState(false)
+
+    useEffect(() => {
+        framer.showUI({
+            width: 340,
+            height: 370,
+            resizable: false,
+        })
+
+        const load = async () => {
+            if (!collection) return
+
+            const fields = await collection.getFields()
+            const items = await collection.getItems()
+
+            const previewItems = items.slice(0, 5)
+            const jsonData = getDataForJSON(collection.slugFieldName, fields, previewItems)
+
+            setPreviewJSON(JSON.stringify(jsonData, null, 2))
+        }
+
+        const resize = () => {
+            if (!containerRef.current || !contentRef.current) return
+
+            const containerBounds = containerRef.current.getBoundingClientRect()
+            const contentBounds = contentRef.current.getBoundingClientRect()
+
+            setShowGradient(containerBounds.height - 25 < contentBounds.height)
+        }
+
+        window.addEventListener("resize", resize)
+
+        load()
+        resize()
+
+        return () => {
+            window.removeEventListener("resize", resize)
+        }
+    }, [collection])
+
+    return (
+        <div className="preview-container" ref={containerRef}>
+            <div className="preview-container-inner">
+                <span className="preview-container-json" ref={contentRef}>
+                    {previewJSON}
+                </span>
+            </div>
+
+            {showGradient && <div className="preview-container-gradient" />}
+
+            <div className="preview-container-border" />
         </div>
     )
 }
