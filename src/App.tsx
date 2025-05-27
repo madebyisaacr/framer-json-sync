@@ -1,12 +1,12 @@
 import type { Collection } from "framer-plugin"
-import type { ImportResult, ImportResultItem } from "./json"
+import type { ImportResult, ImportResultItem } from "./json-import"
 
 import "./App.css"
 import { useState, useEffect, useCallback, useRef, ChangeEvent, useMemo } from "react"
 import { framer } from "framer-plugin"
 import ExportUI from "./components/ExportUI"
 import Heading from "./components/Heading"
-import { processRecords, parseJSON, importJSON, ImportError } from "./json"
+import { processRecords, parseJSON, importJSON, ImportError } from "./json-import"
 
 export function App({ collection, exportOnly }: { collection: Collection; exportOnly: boolean }) {
     const [type, setType] = useState<"import" | "export" | null>(exportOnly ? "export" : null)
