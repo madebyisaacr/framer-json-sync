@@ -231,3 +231,7 @@
 .footer-select-unselected {
     color: var(--framer-color-text-secondary);
 }
+
+select {
+    cursor: pointer;
+}
