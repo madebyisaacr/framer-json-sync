@@ -4,7 +4,15 @@ import { framer } from "framer-plugin"
 import { useEffect, useRef, useState } from "react"
 import { exportCollectionAsJSON, convertCollectionToJSON, getDataForJSON } from "../json-export"
 
-export default function ExportUI({ collection, exportOnly, goBack }: { collection: Collection; goBack: () => void }) {
+export default function ExportUI({
+    collection,
+    exportOnly,
+    goBack,
+}: {
+    collection: Collection
+    exportOnly: boolean
+    goBack: () => void
+}) {
     const exportJSON = async () => {
         if (!collection) return
 
