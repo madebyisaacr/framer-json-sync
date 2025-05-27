@@ -71,7 +71,7 @@ export default function ExportUI({
                 </div>
             )}
 
-            {selectedCollection && <Preview collection={selectedCollection} />}
+            <Preview collection={selectedCollection} />
 
             <div className="menu-buttons-container">
                 <CollectionSelect
@@ -91,7 +91,7 @@ export default function ExportUI({
     )
 }
 
-function Preview({ collection }: { collection: Collection }) {
+function Preview({ collection }: { collection: Collection | null }) {
     const containerRef = useRef<HTMLDivElement>(null)
     const contentRef = useRef<HTMLSpanElement>(null)
 
@@ -99,7 +99,10 @@ function Preview({ collection }: { collection: Collection }) {
 
     useEffect(() => {
         const load = async () => {
-            if (!collection) return
+            if (!collection) {
+                setPreviewJSON("")
+                return
+            }
 
             const fields = await collection.getFields()
             const items = await collection.getItems()
