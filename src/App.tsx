@@ -13,26 +13,18 @@ export function App({ collection, exportOnly }: { collection: Collection; export
     const [result, setResult] = useState<ImportResult | null>(null)
     const [isDragging, setIsDragging] = useState(false)
 
-    const [isLoading, setIsLoading] = useState(true)
-    const [collections, setCollections] = useState<Collection[]>([])
-    const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null)
-
     const form = useRef<HTMLFormElement>(null)
     const inputOpenedFromImportButton = useRef(false)
 
     const itemsWithConflict = useMemo(() => result?.items.filter(item => item.action === "conflict") ?? [], [result])
+
+    const canDropFile = !exportOnly && type !== "export"
 
     useEffect(() => {
         framer.showUI({
             width: 260,
             height: 330,
             resizable: false,
-        })
-
-        Promise.all([framer.getCollections(), framer.getActiveCollection()]).then(([collections, activeCollection]) => {
-            setIsLoading(false)
-            setCollections(collections)
-            setSelectedCollection(activeCollection)
         })
     }, [])
 
@@ -131,6 +123,7 @@ export function App({ collection, exportOnly }: { collection: Collection; export
 
     useEffect(() => {
         const handlePaste = async (event: ClipboardEvent) => {
+            if (!canDropFile) return
             if (!event.clipboardData) return
 
             try {
@@ -151,7 +144,7 @@ export function App({ collection, exportOnly }: { collection: Collection; export
         return () => {
             window.removeEventListener("paste", handlePaste)
         }
-    }, [processAndImport])
+    }, [processAndImport, canDropFile])
 
     const handleSubmit = useCallback(
         async (event: React.FormEvent<HTMLFormElement>) => {
@@ -186,13 +179,6 @@ export function App({ collection, exportOnly }: { collection: Collection; export
         input.click()
     }
 
-    const selectCollection = (event: ChangeEvent<HTMLSelectElement>) => {
-        const collection = collections.find(collection => collection.id === event.currentTarget.value)
-        if (!collection) return
-
-        setSelectedCollection(collection)
-    }
-
     if (result && itemsWithConflict.length > 0) {
         return (
             <ManageConflicts
@@ -210,7 +196,7 @@ export function App({ collection, exportOnly }: { collection: Collection; export
 
     return (
         <form ref={form} className="import-collection" onSubmit={handleSubmit}>
-            {!exportOnly && (
+            {canDropFile && (
                 <input
                     id="file-input"
                     type="file"
