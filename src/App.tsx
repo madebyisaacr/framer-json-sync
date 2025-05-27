@@ -10,7 +10,7 @@ import CollectionSelect from "./components/CollectionSelect"
 import { processRecords, parseJSON, importJSON, ImportError } from "./json-import"
 
 export function App({ collection, exportOnly }: { collection: Collection | null; exportOnly: boolean }) {
-    const [type, setType] = useState<"import" | "export" | null>(exportOnly ? "export" : null)
+    const [exportMenuOpen, setExportMenuOpen] = useState(false)
     const [result, setResult] = useState<ImportResult | null>(null)
     const [isDragging, setIsDragging] = useState(false)
 
@@ -24,14 +24,14 @@ export function App({ collection, exportOnly }: { collection: Collection | null;
     const initialCollection = useMemo(() => collection, [])
     const itemsWithConflict = useMemo(() => result?.items.filter(item => item.action === "conflict") ?? [], [result])
 
-    const canDropFile = !exportOnly && type !== "export"
     const isReadOnly = selectedCollection?.readonly ?? false
+    const canDropFile = selectedCollection && !isReadOnly && !exportMenuOpen
 
     useEffect(() => {
         if (itemsWithConflict.length === 0) {
             framer.showUI({
-                width: type === "export" ? 340 : 260,
-                height: type === "export" ? 370 : 330,
+                width: exportMenuOpen ? 340 : 260,
+                height: exportMenuOpen ? 370 : 330,
                 resizable: false,
             })
         } else {
@@ -41,7 +41,7 @@ export function App({ collection, exportOnly }: { collection: Collection | null;
                 resizable: false,
             })
         }
-    }, [type, itemsWithConflict])
+    }, [exportMenuOpen, itemsWithConflict])
 
     useEffect(() => {
         Promise.all([framer.getCollections(), framer.getActiveCollection()]).then(([collections, activeCollection]) => {
@@ -243,20 +243,14 @@ export function App({ collection, exportOnly }: { collection: Collection | null;
 
             {isDragging ? (
                 <div className="dropzone dragging">{isDragging && <p>Drop JSON file to import</p>}</div>
-            ) : type === "import" ? (
-                <>
-                    <Heading title="Upload JSON">
-                        Make sure your collection fields in Framer match the names of the keys in your JSON file.
-                    </Heading>
-                </>
-            ) : type === "export" ? (
+            ) : exportMenuOpen ? (
                 <ExportUI
                     selectedCollection={selectedCollection}
                     collections={collections}
                     isLoading={isLoading}
                     selectCollection={selectCollection}
                     exportOnly={exportOnly}
-                    goBack={() => setType(null)}
+                    goBack={() => setExportMenuOpen(false)}
                 />
             ) : (
                 <div className="main-menu">
@@ -273,7 +267,7 @@ export function App({ collection, exportOnly }: { collection: Collection | null;
                         </button>
                         <button
                             className="framer-button-primary"
-                            onClick={() => setType("export")}
+                            onClick={() => setExportMenuOpen(true)}
                             disabled={!selectedCollection}
                         >
                             Export

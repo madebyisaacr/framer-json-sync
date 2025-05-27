@@ -12,6 +12,9 @@ export default function CollectionSelect({
     isLoading: boolean
     selectCollection: (event: ChangeEvent<HTMLSelectElement>) => void
 }) {
+    const editableCollections = collections.filter(collection => !collection.readonly)
+    const readOnlyCollections = collections.filter(collection => collection.readonly)
+
     return (
         <select
             onChange={selectCollection}
@@ -22,7 +25,12 @@ export default function CollectionSelect({
                 {isLoading ? "Loading collections…" : "Select Collection…"}
             </option>
 
-            {collections.map(collection => (
+            {editableCollections.map(collection => (
+                <option key={collection.id} value={collection.id}>
+                    {collection.name}
+                </option>
+            ))}
+            {readOnlyCollections.map(collection => (
                 <option key={collection.id} value={collection.id}>
                     {collection.name}
                 </option>
