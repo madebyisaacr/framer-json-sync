@@ -6,46 +6,63 @@ import { useState, useEffect, useCallback, useRef, ChangeEvent, useMemo } from "
 import { framer } from "framer-plugin"
 import ExportUI from "./components/ExportUI"
 import Heading from "./components/Heading"
+import CollectionSelect from "./components/CollectionSelect"
 import { processRecords, parseJSON, importJSON, ImportError } from "./json-import"
 
-export function App({ collection, exportOnly }: { collection: Collection; exportOnly: boolean }) {
+export function App({ collection, exportOnly }: { collection: Collection | null; exportOnly: boolean }) {
     const [type, setType] = useState<"import" | "export" | null>(exportOnly ? "export" : null)
     const [result, setResult] = useState<ImportResult | null>(null)
     const [isDragging, setIsDragging] = useState(false)
 
+    const [isLoading, setIsLoading] = useState(true)
+    const [collections, setCollections] = useState<Collection[]>([])
+    const [selectedCollection, setSelectedCollection] = useState<Collection | null>(collection)
+
     const form = useRef<HTMLFormElement>(null)
     const inputOpenedFromImportButton = useRef(false)
 
+    const initialCollection = useMemo(() => collection, [])
     const itemsWithConflict = useMemo(() => result?.items.filter(item => item.action === "conflict") ?? [], [result])
 
     const canDropFile = !exportOnly && type !== "export"
-
-    useEffect(() => {
-        framer.showUI({
-            width: type === "export" ? 340 : 260,
-            height: type === "export" ? 370 : 330,
-            resizable: false,
-        })
-    }, [type])
+    const isReadOnly = selectedCollection?.readonly ?? false
 
     useEffect(() => {
         if (itemsWithConflict.length === 0) {
-            return
+            framer.showUI({
+                width: type === "export" ? 340 : 260,
+                height: type === "export" ? 370 : 330,
+                resizable: false,
+            })
+        } else {
+            framer.showUI({
+                width: 260,
+                height: 165,
+                resizable: false,
+            })
         }
+    }, [type, itemsWithConflict])
 
-        framer.showUI({
-            width: 260,
-            height: 165,
-            resizable: false,
+    useEffect(() => {
+        Promise.all([framer.getCollections(), framer.getActiveCollection()]).then(([collections, activeCollection]) => {
+            setIsLoading(false)
+            setCollections(collections)
+            setSelectedCollection(activeCollection)
         })
-    }, [itemsWithConflict])
+    }, [])
+
+    useEffect(() => {
+        if (selectedCollection && initialCollection) {
+            selectedCollection.setAsActive()
+        }
+    }, [selectedCollection])
 
     const importItems = useCallback(
         async (result: ImportResult) => {
             await framer.hideUI()
-            await importJSON(collection, result)
+            await importJSON(selectedCollection, result)
         },
-        [collection]
+        [selectedCollection]
     )
 
     const processAndImport = useCallback(
@@ -56,7 +73,7 @@ export function App({ collection, exportOnly }: { collection: Collection; export
                     throw new Error("No records found in JSON")
                 }
 
-                const result = await processRecords(collection, jsonRecords)
+                const result = await processRecords(selectedCollection, jsonRecords)
                 setResult(result)
 
                 if (result.items.some(item => item.action === "conflict")) {
@@ -79,7 +96,7 @@ export function App({ collection, exportOnly }: { collection: Collection; export
                 })
             }
         },
-        [collection, importItems]
+        [selectedCollection, importItems]
     )
 
     useEffect(() => {
@@ -180,6 +197,13 @@ export function App({ collection, exportOnly }: { collection: Collection; export
         input.click()
     }
 
+    const selectCollection = (event: ChangeEvent<HTMLSelectElement>) => {
+        const collection = collections.find(collection => collection.id === event.currentTarget.value)
+        if (!collection) return
+
+        setSelectedCollection(collection)
+    }
+
     if (result && itemsWithConflict.length > 0) {
         return (
             <ManageConflicts
@@ -226,13 +250,32 @@ export function App({ collection, exportOnly }: { collection: Collection; export
                     </Heading>
                 </>
             ) : type === "export" ? (
-                <ExportUI collection={collection} exportOnly={exportOnly} goBack={() => setType(null)} />
+                <ExportUI
+                    selectedCollection={selectedCollection}
+                    collections={collections}
+                    isLoading={isLoading}
+                    selectCollection={selectCollection}
+                    exportOnly={exportOnly}
+                    goBack={() => setType(null)}
+                />
             ) : (
                 <div className="main-menu">
                     <Heading title="JSON Sync">Import and export CMS content using JSON files.</Heading>
                     <div className="menu-buttons-container">
-                        <button onClick={onFileUploadClick}>Import</button>
-                        <button className="framer-button-primary" onClick={() => setType("export")}>
+                        <CollectionSelect
+                            selectedCollection={selectedCollection}
+                            collections={collections}
+                            isLoading={isLoading}
+                            selectCollection={selectCollection}
+                        />
+                        <button onClick={onFileUploadClick} disabled={!selectedCollection || isReadOnly}>
+                            Import
+                        </button>
+                        <button
+                            className="framer-button-primary"
+                            onClick={() => setType("export")}
+                            disabled={!selectedCollection}
+                        >
                             Export
                         </button>
                     </div>

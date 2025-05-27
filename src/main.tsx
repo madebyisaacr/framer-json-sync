@@ -10,13 +10,8 @@ if (!root) throw new Error("Root element not found")
 
 const collection = await framer.getActiveCollection()
 
-if (!collection) {
-    framer.closePlugin("Please select a Collection to import or export")
-    throw new Error()
-}
-
 ReactDOM.createRoot(root).render(
     <React.StrictMode>
-        <App collection={collection} exportOnly={collection.readonly} />
+        <App collection={collection} exportOnly={collection?.readonly ?? false} />
     </React.StrictMode>
 )

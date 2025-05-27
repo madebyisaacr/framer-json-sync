@@ -1,30 +1,37 @@
 import type { Collection } from "framer-plugin"
 
 import { framer } from "framer-plugin"
-import { useEffect, useRef, useState } from "react"
+import { ChangeEvent, useEffect, useRef, useState } from "react"
 import { exportCollectionAsJSON, convertCollectionToJSON, getDataForJSON } from "../json-export"
+import CollectionSelect from "./CollectionSelect"
 
 export default function ExportUI({
-    collection,
-    exportOnly,
+    selectedCollection,
+    collections,
+    isLoading,
+    selectCollection,
     goBack,
 }: {
-    collection: Collection
-    exportOnly: boolean
+    selectedCollection: Collection
+    collections: Collection[]
+    isLoading: boolean
+    selectCollection: (event: ChangeEvent<HTMLSelectElement>) => void
     goBack: () => void
 }) {
-    const exportJSON = async () => {
-        if (!collection) return
+    const isReadOnly = selectedCollection?.readonly ?? false
 
-        await exportCollectionAsJSON(collection, collection.name)
+    const exportJSON = async () => {
+        if (!selectedCollection) return
+
+        await exportCollectionAsJSON(selectedCollection, selectedCollection.name)
 
         framer.notify("Downloaded JSON file", { variant: "success" })
     }
 
     const copyJSONtoClipboard = async () => {
-        if (!collection) return
+        if (!selectedCollection) return
 
-        const json = await convertCollectionToJSON(collection)
+        const json = await convertCollectionToJSON(selectedCollection)
 
         try {
             if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -47,7 +54,7 @@ export default function ExportUI({
 
     return (
         <div className="export-collection">
-            {!exportOnly && (
+            {!isReadOnly && (
                 <div className="back-button" onClick={() => goBack()}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
                         <g transform="translate(1.5 1)">
@@ -64,13 +71,19 @@ export default function ExportUI({
                 </div>
             )}
 
-            {collection && <Preview collection={collection} />}
+            {selectedCollection && <Preview collection={selectedCollection} />}
 
             <div className="menu-buttons-container">
-                <button disabled={!collection} onClick={copyJSONtoClipboard}>
+                <CollectionSelect
+                    selectedCollection={selectedCollection}
+                    collections={collections}
+                    isLoading={isLoading}
+                    selectCollection={selectCollection}
+                />
+                <button disabled={!selectedCollection} onClick={copyJSONtoClipboard}>
                     Copy
                 </button>
-                <button disabled={!collection} onClick={exportJSON} className="framer-button-primary">
+                <button disabled={!selectedCollection} onClick={exportJSON} className="framer-button-primary">
                     Download
                 </button>
             </div>
@@ -83,7 +96,6 @@ function Preview({ collection }: { collection: Collection }) {
     const contentRef = useRef<HTMLSpanElement>(null)
 
     const [previewJSON, setPreviewJSON] = useState<string>()
-    const [showGradient, setShowGradient] = useState(false)
 
     useEffect(() => {
         const load = async () => {
@@ -98,23 +110,7 @@ function Preview({ collection }: { collection: Collection }) {
             setPreviewJSON(JSON.stringify(jsonData, null, 2))
         }
 
-        const resize = () => {
-            if (!containerRef.current || !contentRef.current) return
-
-            const containerBounds = containerRef.current.getBoundingClientRect()
-            const contentBounds = contentRef.current.getBoundingClientRect()
-
-            setShowGradient(containerBounds.height - 25 < contentBounds.height)
-        }
-
-        window.addEventListener("resize", resize)
-
         load()
-        resize()
-
-        return () => {
-            window.removeEventListener("resize", resize)
-        }
     }, [collection])
 
     return (
@@ -125,8 +121,7 @@ function Preview({ collection }: { collection: Collection }) {
                 </span>
             </div>
 
-            {showGradient && <div className="preview-container-gradient" />}
-
+            <div className="preview-container-gradient" />
             <div className="preview-container-border" />
         </div>
     )
