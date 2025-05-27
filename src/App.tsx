@@ -4,116 +4,18 @@ import type { ImportResult, ImportResultItem } from "./json"
 import "./App.css"
 import { useState, useEffect, useCallback, useRef, ChangeEvent, useMemo } from "react"
 import { framer } from "framer-plugin"
-import MainMenu from "./components/MainMenu"
 import ExportUI from "./components/ExportUI"
 import Heading from "./components/Heading"
 import { processRecords, parseJSON, importJSON, ImportError } from "./json"
-
-interface ManageConflictsProps {
-    records: ImportResultItem[]
-    onAllConflictsResolved: (items: ImportResultItem[]) => void
-}
-
-function ManageConflicts({ records, onAllConflictsResolved }: ManageConflictsProps) {
-    const [recordsIterator] = useState(() => records.filter(record => record.action === "conflict").values())
-    const [currentRecord, setCurrentRecord] = useState(() => recordsIterator.next().value)
-
-    const [applyToAll, setApplyToAll] = useState(false)
-
-    const fixedRecords = useRef<ImportResultItem[]>(records)
-
-    const moveToNextRecord = useCallback(() => {
-        const next = recordsIterator.next()
-        if (next.done) {
-            onAllConflictsResolved(fixedRecords.current)
-        } else {
-            setCurrentRecord(next.value)
-        }
-    }, [recordsIterator, onAllConflictsResolved])
-
-    const setAction = useCallback(
-        (record: ImportResultItem, action: "onConflictUpdate" | "onConflictSkip") => {
-            if (!currentRecord) return
-
-            fixedRecords.current = fixedRecords.current.map(existingRecord => {
-                if (existingRecord.slug === record.slug) {
-                    return { ...existingRecord, action }
-                }
-                return existingRecord
-            })
-        },
-        [currentRecord]
-    )
-
-    const applyAction = useCallback(
-        async (action: "onConflictUpdate" | "onConflictSkip") => {
-            if (!currentRecord) return
-
-            if (!applyToAll) {
-                setAction(currentRecord, action)
-                moveToNextRecord()
-                return
-            }
-
-            let current = currentRecord
-            do {
-                setAction(current, action)
-                const next = recordsIterator.next()
-                if (next.done) {
-                    onAllConflictsResolved(fixedRecords.current)
-                    break
-                }
-                current = next.value
-            } while (current)
-        },
-        [currentRecord, applyToAll, setAction, moveToNextRecord, recordsIterator, onAllConflictsResolved]
-    )
-
-    if (!currentRecord) return null
-
-    return (
-        <form
-            onSubmit={async event => {
-                event.preventDefault()
-                await applyAction("onConflictUpdate")
-            }}
-            className="manage-conflicts"
-        >
-            <div className="content">
-                <div className="message">
-                    <span style={{ color: "var(--framer-color-text)", fontWeight: 600 }}>“{currentRecord.slug}”</span>
-                    <p>An item with this slug field value already exists in this Collection.</p>
-                </div>
-
-                <label className="apply-to-all">
-                    <input
-                        type="checkbox"
-                        id="apply-to-all"
-                        checked={applyToAll}
-                        onChange={event => setApplyToAll(event.currentTarget.checked)}
-                    />
-                    Apply to all
-                </label>
-            </div>
-
-            <hr />
-
-            <div className="actions">
-                <button type="button" onClick={async () => applyAction("onConflictSkip")}>
-                    Skip Item
-                </button>
-                <button type="submit" className="framer-button-primary">
-                    Update Item
-                </button>
-            </div>
-        </form>
-    )
-}
 
 export function App({ collection, exportOnly }: { collection: Collection; exportOnly: boolean }) {
     const [type, setType] = useState<"import" | "export" | null>(exportOnly ? "export" : null)
     const [result, setResult] = useState<ImportResult | null>(null)
     const [isDragging, setIsDragging] = useState(false)
+
+    const [isLoading, setIsLoading] = useState(true)
+    const [collections, setCollections] = useState<Collection[]>([])
+    const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null)
 
     const form = useRef<HTMLFormElement>(null)
     const inputOpenedFromImportButton = useRef(false)
@@ -125,6 +27,12 @@ export function App({ collection, exportOnly }: { collection: Collection; export
             width: 260,
             height: 330,
             resizable: false,
+        })
+
+        Promise.all([framer.getCollections(), framer.getActiveCollection()]).then(([collections, activeCollection]) => {
+            setIsLoading(false)
+            setCollections(collections)
+            setSelectedCollection(activeCollection)
         })
     }, [])
 
@@ -270,12 +178,19 @@ export function App({ collection, exportOnly }: { collection: Collection; export
         }
     }, [])
 
-    const onFileUploadClick = event => {
+    const onFileUploadClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault()
         inputOpenedFromImportButton.current = true
 
         const input = document.getElementById("file-input") as HTMLInputElement
         input.click()
+    }
+
+    const selectCollection = (event: ChangeEvent<HTMLSelectElement>) => {
+        const collection = collections.find(collection => collection.id === event.currentTarget.value)
+        if (!collection) return
+
+        setSelectedCollection(collection)
     }
 
     if (result && itemsWithConflict.length > 0) {
@@ -322,16 +237,121 @@ export function App({ collection, exportOnly }: { collection: Collection; export
                     <Heading title="Upload JSON">
                         Make sure your collection fields in Framer match the names of the keys in your JSON file.
                     </Heading>
-
-                    <button className="framer-button-primary" onClick={onFileUploadClick}>
-                        Upload File
-                    </button>
                 </>
             ) : type === "export" ? (
                 <ExportUI collection={collection} />
             ) : (
-                <MainMenu setType={setType} />
+                <div className="main-menu">
+                    <Heading title="JSON Sync">Import and export CMS content using JSON files.</Heading>
+                    <div className="menu-buttons-container">
+                        <button onClick={onFileUploadClick}>Import</button>
+                        <button className="framer-button-primary" onClick={() => setType("export")}>
+                            Export
+                        </button>
+                    </div>
+                </div>
             )}
+        </form>
+    )
+}
+
+interface ManageConflictsProps {
+    records: ImportResultItem[]
+    onAllConflictsResolved: (items: ImportResultItem[]) => void
+}
+
+function ManageConflicts({ records, onAllConflictsResolved }: ManageConflictsProps) {
+    const [recordsIterator] = useState(() => records.filter(record => record.action === "conflict").values())
+    const [currentRecord, setCurrentRecord] = useState(() => recordsIterator.next().value)
+
+    const [applyToAll, setApplyToAll] = useState(false)
+
+    const fixedRecords = useRef<ImportResultItem[]>(records)
+
+    const moveToNextRecord = useCallback(() => {
+        const next = recordsIterator.next()
+        if (next.done) {
+            onAllConflictsResolved(fixedRecords.current)
+        } else {
+            setCurrentRecord(next.value)
+        }
+    }, [recordsIterator, onAllConflictsResolved])
+
+    const setAction = useCallback(
+        (record: ImportResultItem, action: "onConflictUpdate" | "onConflictSkip") => {
+            if (!currentRecord) return
+
+            fixedRecords.current = fixedRecords.current.map(existingRecord => {
+                if (existingRecord.slug === record.slug) {
+                    return { ...existingRecord, action }
+                }
+                return existingRecord
+            })
+        },
+        [currentRecord]
+    )
+
+    const applyAction = useCallback(
+        async (action: "onConflictUpdate" | "onConflictSkip") => {
+            if (!currentRecord) return
+
+            if (!applyToAll) {
+                setAction(currentRecord, action)
+                moveToNextRecord()
+                return
+            }
+
+            let current = currentRecord
+            do {
+                setAction(current, action)
+                const next = recordsIterator.next()
+                if (next.done) {
+                    onAllConflictsResolved(fixedRecords.current)
+                    break
+                }
+                current = next.value
+            } while (current)
+        },
+        [currentRecord, applyToAll, setAction, moveToNextRecord, recordsIterator, onAllConflictsResolved]
+    )
+
+    if (!currentRecord) return null
+
+    return (
+        <form
+            onSubmit={async event => {
+                event.preventDefault()
+                await applyAction("onConflictUpdate")
+            }}
+            className="manage-conflicts"
+        >
+            <div className="content">
+                <div className="message">
+                    <span style={{ color: "var(--framer-color-text)", fontWeight: 600 }}>“{currentRecord.slug}”</span>
+                    <p>An item with this slug field value already exists in this Collection.</p>
+                </div>
+
+                <label className="apply-to-all">
+                    <input
+                        type="checkbox"
+                        id="apply-to-all"
+                        checked={applyToAll}
+                        onChange={event => setApplyToAll(event.currentTarget.checked)}
+                    />
+                    Apply to all
+                </label>
+            </div>
+
+            <hr />
+
+            <div className="actions">
+                <button type="button" onClick={async () => applyAction("onConflictSkip")}>
+                    Skip Item
+                </button>
+                <button type="submit" className="framer-button-primary">
+                    Update Item
+                </button>
+            </div>
         </form>
     )
 }

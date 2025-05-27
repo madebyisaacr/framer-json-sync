@@ -13,23 +13,8 @@
     width: 100%;
 }
 
-.menu-button {
+.menu-buttons-container button {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    aspect-ratio: 1;
-    border-radius: 8px;
-    background-color: var(--framer-color-bg-secondary);
-    height: auto;
-    gap: 10px;
-}
-
-.menu-button:hover {
-    background-color: var(--framer-color-bg-tertiary);
-}
-
-.menu-button svg {
-    color: var(--framer-color-text-secondary);
 }
 
 .import-collection,
