@@ -228,10 +228,6 @@
     width: 100%;
 }
 
-[data-framer-theme="light"] .footer-select--unselected {
-    color: #999999;
-}
-
-[data-framer-theme="dark"] .footer-select--unselected {
-    color: #666666;
+.footer-select-unselected {
+    color: var(--framer-color-text-secondary);
 }

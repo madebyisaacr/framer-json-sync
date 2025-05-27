@@ -10,7 +10,7 @@ import CollectionSelect from "./components/CollectionSelect"
 import { processRecords, parseJSON, importJSON, ImportError } from "./json-import"
 
 export function App({ collection, exportOnly }: { collection: Collection | null; exportOnly: boolean }) {
-    const [exportMenuOpen, setExportMenuOpen] = useState(false)
+    const [exportMenuOpen, setExportMenuOpen] = useState(collection?.readonly ?? false)
     const [result, setResult] = useState<ImportResult | null>(null)
     const [isDragging, setIsDragging] = useState(false)
 
@@ -249,6 +249,7 @@ export function App({ collection, exportOnly }: { collection: Collection | null;
                     collections={collections}
                     isLoading={isLoading}
                     selectCollection={selectCollection}
+                    initialCollection={initialCollection}
                     exportOnly={exportOnly}
                     goBack={() => setExportMenuOpen(false)}
                 />

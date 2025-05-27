@@ -18,7 +18,7 @@ export default function CollectionSelect({
     return (
         <select
             onChange={selectCollection}
-            className={!selectedCollection ? "footer-select footer-select--unselected" : "footer-select"}
+            className={!selectedCollection ? "footer-select footer-select-unselected" : "footer-select"}
             value={selectedCollection?.id ?? ""}
         >
             <option value="" disabled>
