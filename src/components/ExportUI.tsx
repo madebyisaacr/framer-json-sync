@@ -8,7 +8,9 @@ export default function ExportUI({ collection, exportOnly, goBack }: { collectio
     const exportJSON = async () => {
         if (!collection) return
 
-        exportCollectionAsJSON(collection, collection.name)
+        await exportCollectionAsJSON(collection, collection.name)
+
+        framer.notify("Downloaded JSON file", { variant: "success" })
     }
 
     const copyJSONtoClipboard = async () => {

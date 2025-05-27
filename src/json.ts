@@ -137,9 +137,13 @@ function getFieldDataEntryInputForField(
 
         case "multiCollectionReference": {
             if (value === null) {
-                return { type: "multiCollectionReference", value: null }
+                return { type: "multiCollectionReference", value: [] }
             }
-            const referencedSlugs = value.split(",").map(slug => slug.trim())
+            const referencedSlugs = Array.isArray(value)
+                ? value.filter(slug => slug && typeof slug === "string")
+                : typeof value === "string"
+                ? value.split(",").map(slug => slug.trim())
+                : []
             const referencedIds: string[] = []
 
             for (const slug of referencedSlugs) {
