@@ -4,15 +4,7 @@ import { framer } from "framer-plugin"
 import { useEffect, useRef, useState } from "react"
 import { exportCollectionAsJSON, convertCollectionToJSON, getDataForJSON } from "../json-export"
 
-export default function ExportUI({ collection }: { collection: Collection }) {
-    useEffect(() => {
-        framer.showUI({
-            width: 340,
-            height: 370,
-            resizable: false,
-        })
-    }, [])
-
+export default function ExportUI({ collection, exportOnly, goBack }: { collection: Collection; goBack: () => void }) {
     const exportJSON = async () => {
         if (!collection) return
 
@@ -45,6 +37,23 @@ export default function ExportUI({ collection }: { collection: Collection }) {
 
     return (
         <div className="export-collection">
+            {!exportOnly && (
+                <div className="back-button" onClick={() => goBack()}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+                        <g transform="translate(1.5 1)">
+                            <path
+                                d="M 3.5 0 L 0 4 L 3.5 7.5"
+                                fill="transparent"
+                                strokeWidth="1.5"
+                                stroke="currentColor"
+                                strokeLinecap="round"
+                            ></path>
+                        </g>
+                    </svg>
+                    Back
+                </div>
+            )}
+
             {collection && <Preview collection={collection} />}
 
             <div className="menu-buttons-container">
@@ -52,7 +61,7 @@ export default function ExportUI({ collection }: { collection: Collection }) {
                     Copy
                 </button>
                 <button disabled={!collection} onClick={exportJSON} className="framer-button-primary">
-                    Export
+                    Download
                 </button>
             </div>
         </div>

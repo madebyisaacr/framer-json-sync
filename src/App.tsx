@@ -22,11 +22,11 @@ export function App({ collection, exportOnly }: { collection: Collection; export
 
     useEffect(() => {
         framer.showUI({
-            width: 260,
-            height: 330,
+            width: type === "export" ? 340 : 260,
+            height: type === "export" ? 370 : 330,
             resizable: false,
         })
-    }, [])
+    }, [type])
 
     useEffect(() => {
         if (itemsWithConflict.length === 0) {
@@ -84,6 +84,7 @@ export function App({ collection, exportOnly }: { collection: Collection; export
 
     useEffect(() => {
         if (!form.current) return
+        if (!canDropFile) return
 
         const handleDragOver = (event: DragEvent) => {
             event.preventDefault()
@@ -119,7 +120,7 @@ export function App({ collection, exportOnly }: { collection: Collection; export
             form.current?.removeEventListener("dragleave", handleDragLeave)
             form.current?.removeEventListener("drop", handleDrop)
         }
-    }, [])
+    }, [canDropFile])
 
     useEffect(() => {
         const handlePaste = async (event: ClipboardEvent) => {
@@ -225,7 +226,7 @@ export function App({ collection, exportOnly }: { collection: Collection; export
                     </Heading>
                 </>
             ) : type === "export" ? (
-                <ExportUI collection={collection} />
+                <ExportUI collection={collection} exportOnly={exportOnly} goBack={() => setType(null)} />
             ) : (
                 <div className="main-menu">
                     <Heading title="JSON Sync">Import and export CMS content using JSON files.</Heading>

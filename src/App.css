@@ -78,7 +78,6 @@
     border-radius: 8px;
     background-color: color-mix(in srgb, var(--framer-color-tint) 10%, transparent);
     line-height: 1;
-    transition: all 0.2s ease;
     border: 1px dashed transparent;
 }
 
@@ -198,7 +197,6 @@
     left: 0;
     pointer-events: none;
     z-index: 1;
-    transition: height 400ms ease;
 }
 
 .preview-container-json {
@@ -207,5 +205,20 @@
     font-optical-sizing: auto;
     font-weight: 100;
     font-style: normal;
+    color: var(--framer-color-text-secondary);
+}
+
+.back-button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    color: var(--framer-color-text-tertiary);
+    place-self: flex-start;
+    margin-bottom: -5px;
+}
+
+.back-button:hover {
     color: var(--framer-color-text-secondary);
 }
