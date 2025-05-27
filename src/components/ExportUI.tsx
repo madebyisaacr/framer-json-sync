@@ -76,12 +76,6 @@ function Preview({ collection }: { collection: Collection }) {
     const [showGradient, setShowGradient] = useState(false)
 
     useEffect(() => {
-        framer.showUI({
-            width: 340,
-            height: 370,
-            resizable: false,
-        })
-
         const load = async () => {
             if (!collection) return
 
