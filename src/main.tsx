@@ -12,6 +12,6 @@ const collection = await framer.getActiveCollection()
 
 ReactDOM.createRoot(root).render(
     <React.StrictMode>
-        <App collection={collection} exportOnly={collection?.readonly ?? false} />
+        <App collection={collection} />
     </React.StrictMode>
 )

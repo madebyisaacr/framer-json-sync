@@ -7,7 +7,7 @@ export default function CollectionSelect({
     isLoading,
     selectCollection,
 }: {
-    selectedCollection: Collection
+    selectedCollection: Collection | null
     collections: Collection[]
     isLoading: boolean
     selectCollection: (event: ChangeEvent<HTMLSelectElement>) => void

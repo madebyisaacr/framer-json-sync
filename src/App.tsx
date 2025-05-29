@@ -3,16 +3,17 @@ import type { ImportResult } from "./json-import"
 
 import "./App.css"
 import { useState, useEffect, useCallback, useRef, ChangeEvent, useMemo } from "react"
-import { framer } from "framer-plugin"
+import { framer, useIsAllowedTo } from "framer-plugin"
 import Export from "./components/Export"
 import CollectionSelect from "./components/CollectionSelect"
 import ManageConflicts from "./components/ManageConflicts"
 import { processRecords, parseJSON, importJSON, ImportError } from "./json-import"
 
-export function App({ collection, exportOnly }: { collection: Collection | null; exportOnly: boolean }) {
+export function App({ collection }: { collection: Collection | null }) {
     const [exportMenuOpen, setExportMenuOpen] = useState(collection?.readonly ?? false)
     const [result, setResult] = useState<ImportResult | null>(null)
     const [isDragging, setIsDragging] = useState(false)
+    const isAllowedToAddItems = useIsAllowedTo("Collection.addItems")
 
     const [isLoading, setIsLoading] = useState(true)
     const [collections, setCollections] = useState<Collection[]>([])
@@ -25,7 +26,7 @@ export function App({ collection, exportOnly }: { collection: Collection | null;
     const itemsWithConflict = useMemo(() => result?.items.filter(item => item.action === "conflict") ?? [], [result])
 
     const isReadOnly = selectedCollection?.readonly ?? false
-    const canDropFile = selectedCollection && !isReadOnly && !exportMenuOpen
+    const canDropFile = selectedCollection && !isReadOnly && !exportMenuOpen && isAllowedToAddItems
 
     useEffect(() => {
         if (itemsWithConflict.length === 0) {
@@ -59,6 +60,8 @@ export function App({ collection, exportOnly }: { collection: Collection | null;
 
     const importItems = useCallback(
         async (result: ImportResult) => {
+            if (!selectedCollection) return
+
             await framer.hideUI()
             await importJSON(selectedCollection, result)
         },
@@ -68,6 +71,9 @@ export function App({ collection, exportOnly }: { collection: Collection | null;
     const processAndImport = useCallback(
         async (json: string) => {
             try {
+                if (!checkPermissions()) return
+                if (!selectedCollection) return
+
                 const jsonRecords = await parseJSON(json)
                 if (jsonRecords.length === 0) {
                     throw new Error("No records found in JSON")
@@ -141,6 +147,8 @@ export function App({ collection, exportOnly }: { collection: Collection | null;
 
     useEffect(() => {
         const handlePaste = async (event: ClipboardEvent) => {
+            if (!checkPermissions()) return
+
             if (!canDropFile) return
             if (!event.clipboardData) return
 
@@ -190,6 +198,8 @@ export function App({ collection, exportOnly }: { collection: Collection | null;
     }, [])
 
     const onFileUploadClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        if (!checkPermissions()) return
+
         event.preventDefault()
         inputOpenedFromImportButton.current = true
 
@@ -249,8 +259,6 @@ export function App({ collection, exportOnly }: { collection: Collection | null;
                     collections={collections}
                     isLoading={isLoading}
                     selectCollection={selectCollection}
-                    initialCollection={initialCollection}
-                    exportOnly={exportOnly}
                     goBack={() => setExportMenuOpen(false)}
                 />
             ) : (
@@ -300,4 +308,15 @@ function ImportIcon() {
             ></path>
         </svg>
     )
+}
+
+function checkPermissions() {
+    const isAllowedToAddItems = framer.isAllowedTo("Collection.addItems")
+
+    if (!isAllowedToAddItems) {
+        framer.notify("You do not have permissions to edit CMS items", { variant: "error" })
+        return false
+    }
+
+    return true
 }
