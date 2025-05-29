@@ -30,8 +30,8 @@ export function App({ collection, exportOnly }: { collection: Collection | null;
     useEffect(() => {
         if (itemsWithConflict.length === 0) {
             framer.showUI({
-                width: exportMenuOpen ? 340 : 260,
-                height: exportMenuOpen ? 370 : 330,
+                width: exportMenuOpen ? 360 : 260,
+                height: exportMenuOpen ? 400 : 330,
                 resizable: false,
             })
         } else {
@@ -271,10 +271,17 @@ export function App({ collection, exportOnly }: { collection: Collection | null;
                             isLoading={isLoading}
                             selectCollection={selectCollection}
                         />
-                        <button onClick={onFileUploadClick} disabled={!selectedCollection || isReadOnly}>
+                        <button
+                            onClick={onFileUploadClick}
+                            disabled={!selectedCollection || isReadOnly || collections.length === 0}
+                        >
                             Import
                         </button>
-                        <button className="framer-button-primary" onClick={() => setExportMenuOpen(true)}>
+                        <button
+                            className="framer-button-primary"
+                            onClick={() => setExportMenuOpen(true)}
+                            disabled={collections.length === 0}
+                        >
                             Export
                         </button>
                     </div>

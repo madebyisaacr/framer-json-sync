@@ -189,7 +189,7 @@
 }
 
 .preview-container-gradient {
-    background: linear-gradient(color-mix(in srgb, transparent, var(--framer-color-bg) 0%), var(--framer-color-bg));
+    background: linear-gradient(transparent 50%, var(--framer-color-bg));
     position: absolute;
     width: 100%;
     height: 100%;
