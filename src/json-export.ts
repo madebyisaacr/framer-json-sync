@@ -62,7 +62,21 @@ export function getDataForJSON(
             const fieldData = item.fieldData[field.id]
 
             switch (fieldData.type) {
-                case "image":
+                case "image": {
+                    const image = fieldData.value
+
+                    if (!image) {
+                        row[field.name] = null
+                        continue
+                    }
+
+                    row[field.name] = {
+                        url: image.url,
+                        alt: image.altText || undefined,
+                    }
+                    continue
+                }
+
                 case "file": {
                     row[field.name] = fieldData.value ? fieldData.value.url : ""
                     continue

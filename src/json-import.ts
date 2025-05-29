@@ -78,8 +78,20 @@ function getFieldDataEntryInputForField(
         case "color":
         case "link":
         case "file":
-        case "image":
             return { type: field.type, value: value ? value.trim() : null }
+
+        case "image":
+            if (typeof value === "string") {
+                return { type: field.type, value }
+            } else if (typeof value === "object" && value) {
+                return {
+                    type: field.type,
+                    value: value.url || null,
+                    alt: value.alt || undefined,
+                }
+            } else {
+                return { type: field.type, value: null }
+            }
 
         case "number": {
             const number = value === undefined ? 0 : Number(value)
