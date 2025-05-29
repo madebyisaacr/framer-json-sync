@@ -82,12 +82,22 @@ function getFieldDataEntryInputForField(
 
         case "image":
             if (typeof value === "string") {
+                // Check if it's an HTML img tag
+                const imgMatch = value.match(/<img[^>]+src="([^"]+)"[^>]*alt="([^"]*)"[^>]*>/i)
+                if (imgMatch) {
+                    return {
+                        type: field.type,
+                        value: imgMatch[1],
+                        alt: imgMatch[2] || undefined,
+                    }
+                }
                 return { type: field.type, value }
             } else if (typeof value === "object" && value) {
+                const imageValue = value as { url?: string; alt?: string; altText?: string }
                 return {
                     type: field.type,
-                    value: value.url || null,
-                    alt: value.alt || undefined,
+                    value: imageValue.url || null,
+                    alt: imageValue.alt || imageValue.altText || undefined,
                 }
             } else {
                 return { type: field.type, value: null }
