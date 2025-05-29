@@ -5,14 +5,14 @@ import { ChangeEvent, useEffect, useRef, useState } from "react"
 import { exportCollectionAsJSON, convertCollectionToJSON, getDataForJSON } from "../json-export"
 import CollectionSelect from "./CollectionSelect"
 
-export default function ExportUI({
+export default function Export({
     selectedCollection,
     collections,
     isLoading,
     selectCollection,
     goBack,
 }: {
-    selectedCollection: Collection
+    selectedCollection: Collection | null
     collections: Collection[]
     isLoading: boolean
     selectCollection: (event: ChangeEvent<HTMLSelectElement>) => void
