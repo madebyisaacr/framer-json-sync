@@ -8,7 +8,7 @@ import {
     FieldDataEntryInput,
 } from "framer-plugin"
 
-type JSONRecord = Record<string, string>
+type JSONRecord = Record<string, string | boolean | null | object>
 
 export type ImportResultItem = CollectionItemInput & {
     action: "add" | "conflict" | "onConflictUpdate" | "onConflictSkip"
@@ -82,15 +82,6 @@ function getFieldDataEntryInputForField(
 
         case "image":
             if (typeof value === "string") {
-                // Check if it's an HTML img tag
-                const imgMatch = value.match(/<img[^>]+src="([^"]+)"[^>]*alt="([^"]*)"[^>]*>/i)
-                if (imgMatch) {
-                    return {
-                        type: field.type,
-                        value: imgMatch[1],
-                        alt: imgMatch[2] || undefined,
-                    }
-                }
                 return { type: field.type, value }
             } else if (typeof value === "object" && value) {
                 const imageValue = value as { url?: string; alt?: string; altText?: string }
@@ -255,7 +246,7 @@ export async function processRecords(collection: Collection, records: JSONRecord
             if (!collection) {
                 throw new ImportError(
                     "error",
-                    `Import failed. “${field.name}” references a Collection that doesn’t exist.`
+                    `Import failed. “${field.name}” references a Collection that doesn't exist.`
                 )
             }
 
@@ -275,7 +266,10 @@ export async function processRecords(collection: Collection, records: JSONRecord
     }
 
     for (const record of records) {
-        let slug: string | undefined = record[slugFieldKey] ? slugify(record[slugFieldKey]) : undefined
+        let slug: string | undefined =
+            record[slugFieldKey] && typeof record[slugFieldKey] === "string"
+                ? slugify(record[slugFieldKey] as string)
+                : undefined
 
         if (!slug) {
             result.warnings.missingSlugCount++
@@ -285,9 +279,18 @@ export async function processRecords(collection: Collection, records: JSONRecord
             continue
         }
 
+        // Extract draft status - only consider it a draft if the value is true
+        const isDraft = record[":draft"] === true
+
         const fieldData: FieldDataInput = {}
         for (const field of fieldsToImport) {
-            const value = record[field.name]
+            let value: any = record[field.name]
+
+            // Normalize undefined to null for missing fields
+            if (value === undefined) {
+                value = null
+            }
+
             const fieldDataEntry = getFieldDataEntryInputForField(field, value, allItemIdBySlug)
 
             if (fieldDataEntry instanceof ConversionError) {
@@ -305,6 +308,7 @@ export async function processRecords(collection: Collection, records: JSONRecord
             id: existingItemsBySlug.get(slug)?.id,
             slug,
             fieldData,
+            draft: isDraft,
             action: existingItemsBySlug.get(slug) ? "conflict" : "add",
         }
 
@@ -335,10 +339,12 @@ export async function importJSON(collection: Collection, result: ImportResult) {
                     ? {
                           slug: item.slug!,
                           fieldData: item.fieldData,
+                          draft: item.draft,
                       }
                     : {
                           id: item.id!,
                           fieldData: item.fieldData,
+                          draft: item.draft,
                       }
             )
     )

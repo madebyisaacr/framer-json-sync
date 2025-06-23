@@ -58,6 +58,11 @@ export function getDataForJSON(
             [slugFieldName ?? "Slug"]: item.slug,
         }
 
+        // Add draft status if the item is a draft
+        if (item.draft) {
+            row[":draft"] = true
+        }
+
         for (const field of supportedFields) {
             const fieldData = item.fieldData[field.id]
 
