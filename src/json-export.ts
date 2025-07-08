@@ -1,4 +1,4 @@
-import type { Collection, Field, CollectionItem } from "framer-plugin"
+import type { Collection, Field, CollectionItem, ArrayItem } from "framer-plugin"
 
 import { isColorStyle } from "framer-plugin"
 
@@ -32,6 +32,7 @@ function isFieldSupported(field: Field): field is SupportedField {
         case "date":
         case "link":
         case "number":
+        case "array":
             return true
 
         case "divider":
@@ -41,6 +42,73 @@ function isFieldSupported(field: Field): field is SupportedField {
         default:
             shouldBeNever(field)
             return false
+    }
+}
+
+function getDataForField(field: Field, item: CollectionItem | ArrayItem) {
+    const fieldData = item.fieldData[field.id]
+
+    switch (fieldData.type) {
+        case "image": {
+            const image = fieldData.value
+
+            if (!image) {
+                return null
+            }
+
+            return {
+                url: image.url,
+                alt: image.altText || undefined,
+            }
+        }
+
+        case "file": {
+            return fieldData.value ? fieldData.value.url : ""
+        }
+
+        case "multiCollectionReference": {
+            return fieldData.value
+        }
+
+        case "enum": {
+            return fieldData.value
+        }
+
+        case "color": {
+            return isColorStyle(fieldData.value) ? fieldData.value.light : fieldData.value
+        }
+
+        case "collectionReference":
+        case "formattedText":
+        case "string":
+        case "boolean":
+        case "date":
+        case "link":
+        case "number": {
+            return fieldData.value ?? ""
+        }
+
+        case "array": {
+            const value = []
+
+            for (let i = 0; i < fieldData.value.length; i++) {
+                const arrayItem: Record<string, any> = {}
+
+                if (field.type === "array" && "fields" in field && field.fields) {
+                    for (const arrayField of field.fields) {
+                        arrayItem[arrayField.name] = getDataForField(arrayField, fieldData.value[i])
+                    }
+                }
+
+                value.push(arrayItem)
+            }
+
+            return value
+        }
+
+        default: {
+            return null
+        }
     }
 }
 
@@ -64,59 +132,8 @@ export function getDataForJSON(
         }
 
         for (const field of supportedFields) {
-            const fieldData = item.fieldData[field.id]
-
-            switch (fieldData.type) {
-                case "image": {
-                    const image = fieldData.value
-
-                    if (!image) {
-                        row[field.name] = null
-                        continue
-                    }
-
-                    row[field.name] = {
-                        url: image.url,
-                        alt: image.altText || undefined,
-                    }
-                    continue
-                }
-
-                case "file": {
-                    row[field.name] = fieldData.value ? fieldData.value.url : ""
-                    continue
-                }
-
-                case "multiCollectionReference": {
-                    row[field.name] = fieldData.value
-                    continue
-                }
-
-                case "enum": {
-                    row[field.name] = fieldData.value
-                    continue
-                }
-
-                case "color": {
-                    row[field.name] = isColorStyle(fieldData.value) ? fieldData.value.light : fieldData.value
-                    continue
-                }
-
-                case "collectionReference":
-                case "formattedText":
-                case "string":
-                case "boolean":
-                case "date":
-                case "link":
-                case "number": {
-                    row[field.name] = fieldData.value ?? ""
-                    continue
-                }
-
-                default: {
-                    shouldBeNever(fieldData)
-                }
-            }
+            const data = getDataForField(field, item)
+            row[field.name] = data
         }
 
         result.push(row)
@@ -126,8 +143,7 @@ export function getDataForJSON(
 }
 
 export async function convertCollectionToJSON(collection: Collection) {
-    const fields = await collection.getFields()
-    const items = await collection.getItems()
+    const [fields, items] = await Promise.all([collection.getFields(), collection.getItems()])
 
     const json = getDataForJSON(collection.slugFieldName, fields, items)
 
