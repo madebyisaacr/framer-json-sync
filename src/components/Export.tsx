@@ -104,8 +104,7 @@ function Preview({ collection }: { collection: Collection | null }) {
                 return
             }
 
-            const fields = await collection.getFields()
-            const items = await collection.getItems()
+            const [fields, items] = await Promise.all([collection.getFields(), collection.getItems()])
 
             const previewItems = items.slice(0, 5)
             const jsonData = getDataForJSON(collection.slugFieldName, fields, previewItems)
