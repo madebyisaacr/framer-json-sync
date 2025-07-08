@@ -8,7 +8,7 @@ import {
     FieldDataEntryInput,
 } from "framer-plugin"
 
-type JSONRecord = Record<string, string | boolean | null | object>
+type JSONRecord = Record<string, string | boolean | null | object | any[]>
 
 export type ImportResultItem = CollectionItemInput & {
     action: "add" | "conflict" | "onConflictUpdate" | "onConflictSkip"
@@ -54,7 +54,10 @@ export class ImportError extends Error {
      * @param variant Notification variant to show the user
      * @param message Message to show the user
      */
-    constructor(readonly variant?: "error" | "warning", message?: string) {
+    constructor(
+        readonly variant?: "error" | "warning",
+        message?: string
+    ) {
         super(message)
     }
 }
@@ -155,8 +158,8 @@ function getFieldDataEntryInputForField(
             const referencedSlugs = Array.isArray(value)
                 ? value.filter(slug => slug && typeof slug === "string")
                 : typeof value === "string"
-                ? value.split(",").map(slug => slug.trim())
-                : []
+                  ? value.split(",").map(slug => slug.trim())
+                  : []
             const referencedIds: string[] = []
 
             for (const slug of referencedSlugs) {
@@ -170,10 +173,54 @@ function getFieldDataEntryInputForField(
             return { type: "multiCollectionReference", value: referencedIds }
         }
 
+        case "array": {
+            if (value === null) {
+                return { type: "array", value: [] }
+            }
+
+            if (!Array.isArray(value)) {
+                return new ConversionError(`Invalid value for array field “${field.name}” expected an array`)
+            }
+
+            if (field.type !== "array" || !("fields" in field) || !field.fields) {
+                return new ConversionError(`Array field “${field.name}” has no field definitions`)
+            }
+
+            const arrayItems: any[] = []
+            for (const arrayItemValue of value) {
+                if (typeof arrayItemValue !== "object" || arrayItemValue === null) {
+                    return new ConversionError(`Invalid array item for field “${field.name}” expected an object`)
+                }
+
+                const arrayItem: Record<string, any> = {}
+                for (const arrayField of field.fields) {
+                    const fieldValue = (arrayItemValue as Record<string, any>)[arrayField.name]
+                    const normalizedValue = fieldValue === undefined ? null : fieldValue
+                    const fieldDataEntry = getFieldDataEntryInputForField(arrayField, normalizedValue, allItemIdBySlug)
+
+                    if (fieldDataEntry instanceof ConversionError) {
+                        return new ConversionError(
+                            `Invalid value in array item for field “${arrayField.name}”: ${fieldDataEntry.message}`
+                        )
+                    }
+
+                    if (fieldDataEntry !== undefined) {
+                        arrayItem[arrayField.id] = fieldDataEntry
+                    }
+                }
+
+                arrayItems.push(arrayItem)
+            }
+            return { type: "array", value: arrayItems }
+        }
+
         case "divider":
         case "unsupported":
             return new ConversionError(`Unsupported field type “${field.type}”`)
     }
+
+    // Fallback for linter/type safety
+    return new ConversionError(`Unsupported field type “${(field as any).type ?? "unknown"}”`)
 }
 
 function getFirstMatchingIndex(values: string[], name: string | undefined) {
