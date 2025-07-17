@@ -223,20 +223,6 @@ function getFieldDataEntryInputForField(
     return new ConversionError(`Unsupported field type “${(field as any).type ?? "unknown"}”`)
 }
 
-function getFirstMatchingIndex(values: string[], name: string | undefined) {
-    if (!name) {
-        return -1
-    }
-
-    for (const [index, value] of values.entries()) {
-        if (collator.compare(value, name) === 0) {
-            return index
-        }
-    }
-
-    return -1
-}
-
 /** Importer for "records": string based values with named keys */
 export async function processRecords(collection: Collection, records: JSONRecord[]) {
     if (!collection.slugFieldName) {
