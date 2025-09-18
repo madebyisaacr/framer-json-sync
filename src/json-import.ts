@@ -192,7 +192,8 @@ function getFieldDataEntryInputForField(
                     return new ConversionError(`Invalid array item for field “${field.name}” expected an object`)
                 }
 
-                const arrayItem: Record<string, any> = {}
+                const fieldData: FieldDataInput = {}
+
                 for (const arrayField of field.fields) {
                     const fieldValue = (arrayItemValue as Record<string, any>)[arrayField.name]
                     const normalizedValue = fieldValue === undefined ? null : fieldValue
@@ -205,8 +206,13 @@ function getFieldDataEntryInputForField(
                     }
 
                     if (fieldDataEntry !== undefined) {
-                        arrayItem[arrayField.id] = fieldDataEntry
+                        fieldData[arrayField.id] = fieldDataEntry
                     }
+                }
+
+                const arrayItem = {
+                    id: Math.random().toString(36).substring(2, 10),
+                    fieldData,
                 }
 
                 arrayItems.push(arrayItem)
