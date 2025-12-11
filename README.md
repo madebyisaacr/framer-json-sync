@@ -4,7 +4,7 @@ This is a Framer plugin for importing and exporting CMS collections as JSON file
 
 [Open on Framer Marketplace](https://www.framer.com/marketplace/plugins/json-sync/)
 
-| ![JSON Sync](image.png) | ![JSON Sync 2](image.png) |
+| ![JSON Sync](https://www.framer.com/creators-assets/_next/image/?url=https%3A%2F%2Fy4pdgnepgswqffpt.public.blob.vercel-storage.com%2Fplugins%2F376-PyubcV2TvqXfHQTlaUX1D70Fzqthuq&w=3840&q=100) | ![JSON Sync 2](https://www.framer.com/creators-assets/_next/image/?url=https%3A%2F%2Fy4pdgnepgswqffpt.public.blob.vercel-storage.com%2Fplugins%2F376-N7TFr0DYSfGihA8CCoBULRWEZLp4ep&w=3840&q=100) |
 | --- | --- |
 
 ## Quickstart
