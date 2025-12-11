@@ -1,6 +1,11 @@
-# Framer Plugin Template
+# JSON Sync Framer Plugin
 
-This is a template for using the Framer Plugin API in a TypeScript project.
+This is a Framer plugin for importing and exporting CMS collections as JSON files.
+
+[Open on Framer Marketplace](https://www.framer.com/marketplace/plugins/json-sync/)
+
+| ![JSON Sync](image.png) | ![JSON Sync 2](image.png) |
+| --- | --- |
 
 ## Quickstart
 
@@ -10,10 +15,6 @@ First, run the development server:
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Learn more: https://www.framer.com/developers/plugins/introduction
