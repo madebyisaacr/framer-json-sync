@@ -9,6 +9,8 @@ import CollectionSelect from "./components/CollectionSelect"
 import ManageConflicts from "./components/ManageConflicts"
 import { processRecords, parseJSON, importJSON, ImportError } from "./json-import"
 
+const GITHUB_URL = "https://github.com/madebyisaacr/framer-json-sync"
+
 export function App({ collection }: { collection: Collection | null }) {
     const [exportMenuOpen, setExportMenuOpen] = useState(collection?.readonly ?? false)
     const [result, setResult] = useState<ImportResult | null>(null)
@@ -67,6 +69,22 @@ export function App({ collection }: { collection: Collection | null }) {
         },
         [selectedCollection]
     )
+
+    useEffect(() => {
+        framer.setMenu([
+            {
+                label: "View Code on GitHub",
+                onAction: () => {
+                    try {
+                        window.open(GITHUB_URL, "_blank")
+                    } catch (error) {
+                        console.error(error)
+                        framer.notify(`Failed to open link: ${GITHUB_URL}`, { variant: "error" })
+                    }
+                },
+            },
+        ])
+    }, [])
 
     const processAndImport = useCallback(
         async (json: string) => {
