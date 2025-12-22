@@ -298,8 +298,8 @@ export function App({ collection }: { collection: Collection | null }) {
                             <ImportIcon />
                         </div>
                         <div className="content">
-                            <h2>JSON Sync</h2>
-                            <p>Import and export CMS content using JSON files.</p>
+                            <h2>JSON Import & Export</h2>
+                            <p>Update or download CMS content with JSON files.</p>
                         </div>
                     </div>
                     <div className="menu-buttons-container">

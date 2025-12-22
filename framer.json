@@ -1,6 +1,6 @@
 {
     "id": "70f8bb",
-    "name": "JSON Sync",
+    "name": "JSON Import & Export",
     "modes": ["collection"],
     "icon": "/icon.svg"
 }
