@@ -66,6 +66,7 @@ export function App({ collection }: { collection: Collection | null }) {
                         body.style.getPropertyValue("--framer-color-bg") === "#111111"
                     ) {
                         body.style.setProperty("--framer-color-bg", "#181818")
+                        break
                     }
                 }
             }
