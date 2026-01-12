@@ -57,21 +57,8 @@ export function App({ collection }: { collection: Collection | null }) {
     useEffect(() => {
         if (selectedCollection) {
             selectedCollection.setAsActive()
-
-            if (!initialCollection) {
-                const body = document.body
-                for (let i = 0; i < body.style.length; i++) {
-                    if (
-                        body.style[i] === "--framer-color-bg" &&
-                        body.style.getPropertyValue("--framer-color-bg") === "#111111"
-                    ) {
-                        body.style.setProperty("--framer-color-bg", "#181818")
-                        break
-                    }
-                }
-            }
         }
-    }, [selectedCollection, initialCollection])
+    }, [selectedCollection])
 
     const importItems = useCallback(
         async (result: ImportResult) => {
