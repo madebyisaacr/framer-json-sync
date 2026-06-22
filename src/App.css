@@ -173,7 +173,7 @@ body[data-framer-theme="dark"] {
 
 .preview-container {
     background-color: var(--framer-color-bg-tertiary);
-    border-radius: 8px;
+    border-radius: 10px;
     width: 100%;
     flex: 1;
     position: relative;
@@ -182,7 +182,7 @@ body[data-framer-theme="dark"] {
 }
 
 .preview-container-inner {
-    border-radius: 8px;
+    border-radius: 10px;
     width: 100%;
     height: 100%;
     position: absolute;
@@ -193,7 +193,7 @@ body[data-framer-theme="dark"] {
 .preview-container-border {
     content: "";
     box-shadow: inset 0 0 0 1px var(--border-color);
-    border-radius: 8px;
+    border-radius: 10px;
     inset: 0;
     position: absolute;
     z-index: 1;
