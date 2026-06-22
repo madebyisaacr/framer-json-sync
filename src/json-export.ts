@@ -1,6 +1,6 @@
-import type { Collection, Field, CollectionItem, ArrayItem } from "framer-plugin"
+import type { Collection, Field, CollectionItem, ArrayItem } from "@framer/plugin"
 
-import { isColorStyle } from "framer-plugin"
+import { isColorStyle } from "@framer/plugin"
 
 function downloadFile(file: File) {
     const filename = file.name

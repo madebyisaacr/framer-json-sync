@@ -6,7 +6,7 @@ import {
     framer,
     FieldDataInput,
     FieldDataEntryInput,
-} from "framer-plugin"
+} from "@framer/plugin"
 
 type JSONRecord = Record<string, string | boolean | null | object | any[]>
 

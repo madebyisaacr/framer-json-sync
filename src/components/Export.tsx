@@ -1,6 +1,6 @@
-import type { Collection } from "framer-plugin"
+import type { Collection } from "@framer/plugin"
 
-import { framer } from "framer-plugin"
+import { framer } from "@framer/plugin"
 import { ChangeEvent, useEffect, useRef, useState } from "react"
 import { exportCollectionAsJSON, convertCollectionToJSON, getDataForJSON } from "../json-export"
 import CollectionSelect from "./CollectionSelect"

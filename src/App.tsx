@@ -1,9 +1,9 @@
-import type { Collection } from "framer-plugin"
+import type { Collection } from "@framer/plugin"
 import type { ImportResult } from "./json-import"
 
 import "./App.css"
 import { useState, useEffect, useCallback, useRef, ChangeEvent, useMemo } from "react"
-import { framer, useIsAllowedTo } from "framer-plugin"
+import { framer, useIsAllowedTo } from "@framer/plugin"
 import Export from "./components/Export"
 import CollectionSelect from "./components/CollectionSelect"
 import ManageConflicts from "./components/ManageConflicts"
@@ -24,7 +24,6 @@ export function App({ collection }: { collection: Collection | null }) {
     const form = useRef<HTMLFormElement>(null)
     const inputOpenedFromImportButton = useRef(false)
 
-    const initialCollection = useMemo(() => collection, [])
     const itemsWithConflict = useMemo(() => result?.items.filter(item => item.action === "conflict") ?? [], [result])
 
     const isReadOnly = selectedCollection?.readonly ?? false
@@ -319,10 +318,27 @@ export function App({ collection }: { collection: Collection | null }) {
 
 function ImportIcon() {
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none">
+        <svg
+            role="presentation"
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 12 12"
+            fill="none"
+            aria-hidden="true"
+            focusable="false"
+        >
             <path
-                d="M 9 1.4 C 12.59 1.4 15.5 2.799 15.5 4.525 C 15.5 6.251 12.59 7.65 9 7.65 C 5.41 7.65 2.5 6.251 2.5 4.525 C 2.5 2.799 5.41 1.4 9 1.4 Z M 15.5 8.9 C 15.5 10.626 12.59 12.025 9 12.025 C 5.41 12.025 2.5 10.626 2.5 8.9 C 2.5 8.037 2.5 6.4 2.5 6.4 C 2.5 8.126 5.41 9.525 9 9.525 C 12.59 9.525 15.5 8.126 15.5 6.4 C 15.5 6.4 15.5 8.037 15.5 8.9 Z M 15.5 13.275 C 15.5 15.001 12.59 16.4 9 16.4 C 5.41 16.4 2.5 15.001 2.5 13.275 C 2.5 12.412 2.5 10.775 2.5 10.775 C 2.5 12.501 5.41 13.9 9 13.9 C 12.59 13.9 15.5 12.501 15.5 10.775 C 15.5 10.775 15.5 12.412 15.5 13.275 Z"
-                fill="var(--framer-color-tint)"
+                fill="currentColor"
+                fillOpacity="0.2"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                d="M1.5 8.75v-5.5C1.5 1.869 3.515.75 6 .75s4.5 1.119 4.5 2.5v5.5m0 0c0 1.381-2.015 2.5-4.5 2.5s-4.5-1.119-4.5-2.5"
+            ></path>
+            <path
+                fill="none"
+                stroke="currentColor"
+                d="M10.25 3.25c0 1.105-1.903 2-4.25 2s-4.25-.895-4.25-2M10.25 6c0 1.105-1.903 2-4.25 2s-4.25-.895-4.25-2"
             ></path>
         </svg>
     )

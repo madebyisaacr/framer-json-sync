@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react"
-import { Collection } from "framer-plugin"
+import { Collection } from "@framer/plugin"
 
 export default function CollectionSelect({
     selectedCollection,

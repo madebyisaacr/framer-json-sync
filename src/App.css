@@ -1,12 +1,24 @@
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap");
 
+* {
+    --framer-color-tint: #0099ff;
+}
+
+body {
+    --border-color: rgba(0, 0, 0, 0.05);
+}
+
+body[data-framer-theme="dark"] {
+    --border-color: rgba(255, 255, 255, 0.07);
+}
+
 .export-collection {
     display: flex;
     flex-direction: column;
     align-items: center;
     height: 100%;
     width: 100%;
-    gap: 15px;
+    gap: 10px;
 }
 
 .preview-container {
@@ -100,7 +112,7 @@
 }
 
 .logo {
-    color: var(--framer-color-text-tertiary);
+    color: var(--framer-color-tint);
     background-color: rgba(0, 153, 255, 0.1);
     border-radius: 8px;
     height: 30px;
@@ -160,7 +172,7 @@
 }
 
 .preview-container {
-    background: color-mix(in srgb, transparent, var(--framer-color-bg-tertiary) 10%);
+    background-color: var(--framer-color-bg-tertiary);
     border-radius: 8px;
     width: 100%;
     flex: 1;
@@ -180,7 +192,7 @@
 
 .preview-container-border {
     content: "";
-    box-shadow: 0 0 0 1px var(--framer-color-divider) inset;
+    box-shadow: inset 0 0 0 1px var(--border-color);
     border-radius: 8px;
     inset: 0;
     position: absolute;
@@ -189,7 +201,7 @@
 }
 
 .preview-container-gradient {
-    background: linear-gradient(transparent 50%, var(--framer-color-bg));
+    background: linear-gradient(transparent 50%, var(--framer-color-bg-tertiary));
     position: absolute;
     width: 100%;
     height: 100%;
@@ -216,7 +228,6 @@
     cursor: pointer;
     color: var(--framer-color-text-tertiary);
     place-self: flex-start;
-    margin-bottom: -5px;
 }
 
 .back-button:hover {
