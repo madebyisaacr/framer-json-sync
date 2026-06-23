@@ -12,7 +12,7 @@ import { processRecords, parseJSON, importJSON, ImportError } from "./json-impor
 const GITHUB_URL = "https://github.com/madebyisaacr/framer-json-sync"
 
 export function App({ collection }: { collection: Collection | null }) {
-    const [exportMenuOpen, setExportMenuOpen] = useState(collection?.readonly ?? false)
+    const [exportMenuOpen, setExportMenuOpen] = useState(false)
     const [result, setResult] = useState<ImportResult | null>(null)
     const [isDragging, setIsDragging] = useState(false)
     const isAllowedToAddItems = useIsAllowedTo("Collection.addItems")
@@ -26,7 +26,7 @@ export function App({ collection }: { collection: Collection | null }) {
 
     const itemsWithConflict = useMemo(() => result?.items.filter(item => item.action === "conflict") ?? [], [result])
 
-    const isReadOnly = selectedCollection?.readonly ?? false
+    const isReadOnly = selectedCollection?.managedBy !== "user"
     const canDropFile = selectedCollection && !isReadOnly && !exportMenuOpen && isAllowedToAddItems
 
     useEffect(() => {

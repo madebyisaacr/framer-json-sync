@@ -18,8 +18,6 @@ export default function Export({
     selectCollection: (collectionId: string) => void
     goBack: () => void
 }) {
-    const isReadOnly = selectedCollection?.readonly ?? false
-
     const exportJSON = async () => {
         if (!selectedCollection) return
 
@@ -54,22 +52,20 @@ export default function Export({
 
     return (
         <div className="export-collection">
-            {!isReadOnly && (
-                <div className="back-button" onClick={() => goBack()}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
-                        <g transform="translate(1.5 1)">
-                            <path
-                                d="M 3.5 0 L 0 4 L 3.5 7.5"
-                                fill="transparent"
-                                strokeWidth="1.5"
-                                stroke="currentColor"
-                                strokeLinecap="round"
-                            ></path>
-                        </g>
-                    </svg>
-                    Back
-                </div>
-            )}
+            <div className="back-button" onClick={() => goBack()}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+                    <g transform="translate(1.5 1)">
+                        <path
+                            d="M 3.5 0 L 0 4 L 3.5 7.5"
+                            fill="transparent"
+                            strokeWidth="1.5"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                        ></path>
+                    </g>
+                </svg>
+                Back
+            </div>
 
             <Preview collection={selectedCollection} />
 
