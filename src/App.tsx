@@ -2,7 +2,7 @@ import type { Collection } from "@framer/plugin"
 import type { ImportResult } from "./json-import"
 
 import "./App.css"
-import { useState, useEffect, useCallback, useRef, ChangeEvent, useMemo } from "react"
+import { useState, useEffect, useCallback, useRef, useMemo, type ChangeEvent } from "react"
 import { framer, useIsAllowedTo } from "@framer/plugin"
 import Export from "./components/Export"
 import CollectionSelect from "./components/CollectionSelect"
@@ -224,8 +224,8 @@ export function App({ collection }: { collection: Collection | null }) {
         input.click()
     }
 
-    const selectCollection = (event: ChangeEvent<HTMLSelectElement>) => {
-        const collection = collections.find(collection => collection.id === event.currentTarget.value)
+    const selectCollection = (collectionId: string) => {
+        const collection = collections.find(collection => collection.id === collectionId)
         if (!collection) return
 
         setSelectedCollection(collection)

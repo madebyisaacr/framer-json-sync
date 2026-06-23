@@ -1,7 +1,7 @@
 import type { Collection } from "@framer/plugin"
 
 import { framer } from "@framer/plugin"
-import { ChangeEvent, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { exportCollectionAsJSON, convertCollectionToJSON, getDataForJSON } from "../json-export"
 import CollectionSelect from "./CollectionSelect"
 
@@ -15,7 +15,7 @@ export default function Export({
     selectedCollection: Collection | null
     collections: Collection[]
     isLoading: boolean
-    selectCollection: (event: ChangeEvent<HTMLSelectElement>) => void
+    selectCollection: (collectionId: string) => void
     goBack: () => void
 }) {
     const isReadOnly = selectedCollection?.readonly ?? false

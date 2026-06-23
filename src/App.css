@@ -234,16 +234,26 @@ body[data-framer-theme="dark"] {
     color: var(--framer-color-text-secondary);
 }
 
-.footer-select {
+.collection-dropdown {
     grid-column: 1 / 3;
     width: 100%;
+    background-color: var(--framer-color-control);
+    height: 30px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 8px;
+    padding: 0 10px;
+    cursor: pointer;
+    user-select: none;
 }
 
-.footer-select-unselected {
+.collection-dropdown-unselected {
     color: var(--framer-color-text-secondary);
 }
 
-select {
-    cursor: pointer;
-    user-select: none;
+.collection-dropdown svg {
+    color: #999;
+    pointer-events: none;
 }
