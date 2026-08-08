@@ -16,6 +16,22 @@ import CollectionSelect from "./CollectionSelect"
 
 const DRAFT_FIELD_LABEL = "Status"
 
+const FIELD_TYPE_NAMES: Record<string, string> = {
+    boolean: "Toggle",
+    color: "Color",
+    number: "Number",
+    string: "Plain Text",
+    formattedText: "Formatted Text",
+    image: "Image",
+    link: "Link",
+    date: "Date",
+    file: "File",
+    enum: "Option",
+    collectionReference: "Reference",
+    multiCollectionReference: "Multi-Reference",
+    array: "Gallery",
+}
+
 export default function Export({
     selectedCollection,
     collections,
@@ -93,15 +109,17 @@ export default function Export({
         )
 
         const menuFields = [
-            ...fields.slice(0, 1).map(field => ({ id: field.id, label: field.name })),
-            { id: DRAFT_FIELD_ID, label: DRAFT_FIELD_LABEL },
-            ...fields.slice(1).map(field => ({ id: field.id, label: field.name })),
-            { id: CREATED_AT_FIELD_ID, label: CREATED_AT_LABEL },
-            { id: EDITED_AT_FIELD_ID, label: EDITED_AT_LABEL },
+            ...fields.slice(0, 1).map(field => ({ id: field.id, label: field.name, type: field.type })),
+            { id: DRAFT_FIELD_ID, label: DRAFT_FIELD_LABEL, type: "boolean" },
+            ...fields.slice(1).map(field => ({ id: field.id, label: field.name, type: field.type })),
+            { id: CREATED_AT_FIELD_ID, label: CREATED_AT_LABEL, type: "date" },
+            { id: EDITED_AT_FIELD_ID, label: EDITED_AT_LABEL, type: "date" },
         ]
 
         const allEnabled = menuFields.every(field => enabledFields[field.id] !== false)
         const allDisabled = menuFields.every(field => enabledFields[field.id] === false)
+        
+        console.log(menuFields.map(field => `${field.type} ${FIELD_TYPE_NAMES[field.type] ?? field.type}`))
 
         void framer.showContextMenu(
             [
@@ -125,9 +143,10 @@ export default function Export({
                           },
                       ]
                     : []),
-                ...((!allEnabled || !allDisabled) && menuFields.length > 0 ? [{ type: "separator" as const }] : []),
+                { type: "separator" },
                 ...menuFields.map(field => ({
                     label: field.label,
+                    secondaryLabel: FIELD_TYPE_NAMES[field.type] ?? field.type,
                     checked: enabledFields[field.id] !== false,
                     onAction: () => {
                         setEnabledFields(prev => ({
