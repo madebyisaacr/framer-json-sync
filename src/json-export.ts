@@ -3,8 +3,8 @@ import type { Collection, Field, CollectionItem, ArrayItem } from "@framer/plugi
 import { isColorStyle } from "@framer/plugin"
 
 export const DRAFT_FIELD_ID = ":draft"
-export const CREATED_AT_FIELD_ID = ":createdAt"
-export const EDITED_AT_FIELD_ID = ":editedAt"
+export const CREATED_AT_FIELD_ID = ":created"
+export const EDITED_AT_FIELD_ID = ":edited"
 export const CREATED_AT_LABEL = "Created"
 export const EDITED_AT_LABEL = "Edited"
 
@@ -135,8 +135,10 @@ export function getDataForJSON(
     const includeEditedAt = enabledFields?.[EDITED_AT_FIELD_ID] !== false
 
     const fieldNames = new Set(fields.map(field => field.name))
-    const createdAtKey = fieldNames.has(CREATED_AT_LABEL) ? CREATED_AT_FIELD_ID : CREATED_AT_LABEL
-    const editedAtKey = fieldNames.has(EDITED_AT_LABEL) ? EDITED_AT_FIELD_ID : EDITED_AT_LABEL
+    const useTimestampFallbackKeys =
+        fieldNames.has(CREATED_AT_LABEL) || fieldNames.has(EDITED_AT_LABEL)
+    const createdAtKey = useTimestampFallbackKeys ? CREATED_AT_FIELD_ID : CREATED_AT_LABEL
+    const editedAtKey = useTimestampFallbackKeys ? EDITED_AT_FIELD_ID : EDITED_AT_LABEL
 
     const result: Record<string, any>[] = []
 
