@@ -7,6 +7,7 @@ import {
     FieldDataInput,
     FieldDataEntryInput,
 } from "@framer/plugin"
+import { DRAFT_FIELD_ID } from "./json-export"
 
 type JSONRecord = Record<string, string | boolean | null | object | any[]>
 
@@ -318,7 +319,7 @@ export async function processRecords(collection: Collection, records: JSONRecord
         }
 
         // Extract draft status - only consider it a draft if the value is true
-        const isDraft = record[":draft"] === true
+        const isDraft = record[DRAFT_FIELD_ID] === true
 
         const fieldData: FieldDataInput = {}
         for (const field of fieldsToImport) {

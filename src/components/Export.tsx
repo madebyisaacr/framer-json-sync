@@ -2,8 +2,10 @@ import type { Collection } from "@framer/plugin"
 
 import { framer } from "@framer/plugin"
 import { useEffect, useRef, useState } from "react"
-import { exportCollectionAsJSON, convertCollectionToJSON, getDataForJSON } from "../json-export"
+import { DRAFT_FIELD_ID, exportCollectionAsJSON, convertCollectionToJSON, getDataForJSON } from "../json-export"
 import CollectionSelect from "./CollectionSelect"
+
+const DRAFT_FIELD_LABEL = "Status"
 
 export default function Export({
     selectedCollection,
@@ -27,13 +29,14 @@ export default function Export({
             return
         }
 
-        void selectedCollection.getFields().then(fields => {
+        void Promise.all([selectedCollection.getFields(), selectedCollection.getItems()]).then(([fields, items]) => {
             const next: Record<string, boolean> = {}
             for (const field of fields) {
                 if (field.type !== "divider" && field.type !== "unsupported") {
                     next[field.id] = true
                 }
             }
+            next[DRAFT_FIELD_ID] = items.some(item => item.draft)
             setEnabledFields(next)
         })
     }, [selectedCollection])
@@ -78,8 +81,14 @@ export default function Export({
             field => field.type !== "divider" && field.type !== "unsupported"
         )
 
-        const allEnabled = fields.every(field => enabledFields[field.id] !== false)
-        const allDisabled = fields.every(field => enabledFields[field.id] === false)
+        const menuFields = [
+            ...fields.slice(0, 1).map(field => ({ id: field.id, label: field.name })),
+            { id: DRAFT_FIELD_ID, label: DRAFT_FIELD_LABEL },
+            ...fields.slice(1).map(field => ({ id: field.id, label: field.name })),
+        ]
+
+        const allEnabled = menuFields.every(field => enabledFields[field.id] !== false)
+        const allDisabled = menuFields.every(field => enabledFields[field.id] === false)
 
         void framer.showContextMenu(
             [
@@ -88,7 +97,7 @@ export default function Export({
                           {
                               label: "Select All",
                               onAction: () => {
-                                  setEnabledFields(Object.fromEntries(fields.map(field => [field.id, true])))
+                                  setEnabledFields(Object.fromEntries(menuFields.map(field => [field.id, true])))
                               },
                           },
                       ]
@@ -98,14 +107,14 @@ export default function Export({
                           {
                               label: "Deselect All",
                               onAction: () => {
-                                  setEnabledFields(Object.fromEntries(fields.map(field => [field.id, false])))
+                                  setEnabledFields(Object.fromEntries(menuFields.map(field => [field.id, false])))
                               },
                           },
                       ]
                     : []),
-                ...((!allEnabled || !allDisabled) && fields.length > 0 ? [{ type: "separator" as const }] : []),
-                ...fields.map(field => ({
-                    label: field.name,
+                ...((!allEnabled || !allDisabled) && menuFields.length > 0 ? [{ type: "separator" as const }] : []),
+                ...menuFields.map(field => ({
+                    label: field.label,
                     checked: enabledFields[field.id] !== false,
                     onAction: () => {
                         setEnabledFields(prev => ({

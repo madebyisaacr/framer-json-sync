@@ -2,6 +2,8 @@ import type { Collection, Field, CollectionItem, ArrayItem } from "@framer/plugi
 
 import { isColorStyle } from "@framer/plugin"
 
+export const DRAFT_FIELD_ID = ":draft"
+
 function downloadFile(file: File) {
     const filename = file.name
     const fileURL = URL.createObjectURL(file)
@@ -119,6 +121,7 @@ export function getDataForJSON(
     enabledFields?: Record<string, boolean>
 ): Record<string, any>[] {
     const supportedFields = fields.filter(field => isFieldSupported(field) && enabledFields?.[field.id] !== false)
+    const includeDraftStatus = enabledFields?.[DRAFT_FIELD_ID] !== false
     const result: Record<string, any>[] = []
 
     // Add all the data rows.
@@ -127,9 +130,9 @@ export function getDataForJSON(
             [slugFieldName ?? "Slug"]: item.slug,
         }
 
-        // Add draft status if the item is a draft
-        if (item.draft) {
-            row[":draft"] = true
+        // Add draft status if enabled and the item is a draft
+        if (includeDraftStatus && item.draft) {
+            row[DRAFT_FIELD_ID] = true
         }
 
         for (const field of supportedFields) {
