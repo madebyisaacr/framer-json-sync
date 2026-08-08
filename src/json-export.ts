@@ -115,9 +115,10 @@ function getDataForField(field: Field, item: CollectionItem | ArrayItem) {
 export function getDataForJSON(
     slugFieldName: string | null,
     fields: Field[],
-    items: CollectionItem[]
+    items: CollectionItem[],
+    enabledFields?: Record<string, boolean>
 ): Record<string, any>[] {
-    const supportedFields = fields.filter(isFieldSupported)
+    const supportedFields = fields.filter(field => isFieldSupported(field) && enabledFields?.[field.id] !== false)
     const result: Record<string, any>[] = []
 
     // Add all the data rows.
@@ -142,16 +143,20 @@ export function getDataForJSON(
     return result
 }
 
-export async function convertCollectionToJSON(collection: Collection) {
+export async function convertCollectionToJSON(collection: Collection, enabledFields?: Record<string, boolean>) {
     const [fields, items] = await Promise.all([collection.getFields(), collection.getItems()])
 
-    const json = getDataForJSON(collection.slugFieldName, fields, items)
+    const json = getDataForJSON(collection.slugFieldName, fields, items, enabledFields)
 
     return JSON.stringify(json, null, 2)
 }
 
-export async function exportCollectionAsJSON(collection: Collection, filename: string) {
-    const json = await convertCollectionToJSON(collection)
+export async function exportCollectionAsJSON(
+    collection: Collection,
+    filename: string,
+    enabledFields?: Record<string, boolean>
+) {
+    const json = await convertCollectionToJSON(collection, enabledFields)
 
     const file = new File([json], `${filename}.json`, {
         type: "application/json",

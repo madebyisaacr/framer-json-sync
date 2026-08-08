@@ -18,10 +18,30 @@ export default function Export({
     selectCollection: (collectionId: string) => void
     goBack: () => void
 }) {
+    const optionsButtonRef = useRef<HTMLButtonElement>(null)
+    const [enabledFields, setEnabledFields] = useState<Record<string, boolean>>({})
+
+    useEffect(() => {
+        if (!selectedCollection) {
+            setEnabledFields({})
+            return
+        }
+
+        void selectedCollection.getFields().then(fields => {
+            const next: Record<string, boolean> = {}
+            for (const field of fields) {
+                if (field.type !== "divider" && field.type !== "unsupported") {
+                    next[field.id] = true
+                }
+            }
+            setEnabledFields(next)
+        })
+    }, [selectedCollection])
+
     const exportJSON = async () => {
         if (!selectedCollection) return
 
-        await exportCollectionAsJSON(selectedCollection, selectedCollection.name)
+        await exportCollectionAsJSON(selectedCollection, selectedCollection.name, enabledFields)
 
         framer.notify("Downloaded JSON file", { variant: "success" })
     }
@@ -29,7 +49,7 @@ export default function Export({
     const copyJSONtoClipboard = async () => {
         if (!selectedCollection) return
 
-        const json = await convertCollectionToJSON(selectedCollection)
+        const json = await convertCollectionToJSON(selectedCollection, enabledFields)
 
         try {
             if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -50,6 +70,61 @@ export default function Export({
         }
     }
 
+    const onOptionsClick = async () => {
+        if (!selectedCollection) return
+
+        const rect = optionsButtonRef.current?.getBoundingClientRect()
+        const fields = (await selectedCollection.getFields()).filter(
+            field => field.type !== "divider" && field.type !== "unsupported"
+        )
+
+        const allEnabled = fields.every(field => enabledFields[field.id] !== false)
+        const allDisabled = fields.every(field => enabledFields[field.id] === false)
+
+        void framer.showContextMenu(
+            [
+                ...(!allEnabled
+                    ? [
+                          {
+                              label: "Select All",
+                              onAction: () => {
+                                  setEnabledFields(Object.fromEntries(fields.map(field => [field.id, true])))
+                              },
+                          },
+                      ]
+                    : []),
+                ...(!allDisabled
+                    ? [
+                          {
+                              label: "Deselect All",
+                              onAction: () => {
+                                  setEnabledFields(Object.fromEntries(fields.map(field => [field.id, false])))
+                              },
+                          },
+                      ]
+                    : []),
+                ...((!allEnabled || !allDisabled) && fields.length > 0 ? [{ type: "separator" as const }] : []),
+                ...fields.map(field => ({
+                    label: field.name,
+                    checked: enabledFields[field.id] !== false,
+                    onAction: () => {
+                        setEnabledFields(prev => ({
+                            ...prev,
+                            [field.id]: !prev[field.id],
+                        }))
+                    },
+                })),
+            ],
+            {
+                location: {
+                    x: rect?.x ?? 0,
+                    y: (rect?.y ?? 0) + (rect?.height ?? 0) + 4,
+                },
+                width: (rect?.width ?? 0) + 8,
+            }
+        )
+    }
+
     return (
         <div className="export-collection">
             <div className="back-button" onClick={() => goBack()}>
@@ -67,7 +142,7 @@ export default function Export({
                 Back
             </div>
 
-            <Preview collection={selectedCollection} />
+            <Preview collection={selectedCollection} enabledFields={enabledFields} />
 
             <div className="menu-buttons-container">
                 <CollectionSelect
@@ -76,6 +151,9 @@ export default function Export({
                     isLoading={isLoading}
                     selectCollection={selectCollection}
                 />
+                <button ref={optionsButtonRef} onClick={onOptionsClick} className="two-columns">
+                    Fields
+                </button>
                 <button disabled={!selectedCollection} onClick={copyJSONtoClipboard}>
                     Copy
                 </button>
@@ -87,7 +165,13 @@ export default function Export({
     )
 }
 
-function Preview({ collection }: { collection: Collection | null }) {
+function Preview({
+    collection,
+    enabledFields,
+}: {
+    collection: Collection | null
+    enabledFields: Record<string, boolean>
+}) {
     const containerRef = useRef<HTMLDivElement>(null)
     const contentRef = useRef<HTMLSpanElement>(null)
 
@@ -103,13 +187,13 @@ function Preview({ collection }: { collection: Collection | null }) {
             const [fields, items] = await Promise.all([collection.getFields(), collection.getItems()])
 
             const previewItems = items.slice(0, 5)
-            const jsonData = getDataForJSON(collection.slugFieldName, fields, previewItems)
+            const jsonData = getDataForJSON(collection.slugFieldName, fields, previewItems, enabledFields)
 
             setPreviewJSON(JSON.stringify(jsonData, null, 2))
         }
 
         load()
-    }, [collection])
+    }, [collection, enabledFields])
 
     return (
         <div className="preview-container" ref={containerRef}>

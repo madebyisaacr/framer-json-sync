@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@framer/plugin": "^4.0.1",
+    "classnames": "^2.5.1",
     "react": "^18",
     "react-dom": "^18",
     "vite-plugin-mkcert": "^1"

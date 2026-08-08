@@ -1,5 +1,6 @@
 import { useRef } from "react"
 import { Collection, framer } from "@framer/plugin"
+import cx from "classnames"
 
 export default function CollectionSelect({
     selectedCollection,
@@ -53,7 +54,7 @@ export default function CollectionSelect({
     return (
         <div
             ref={buttonRef}
-            className={`collection-dropdown${!selectedCollection ? " collection-dropdown-unselected" : ""}`}
+            className={cx("collection-dropdown two-columns", !selectedCollection ? "collection-dropdown-unselected" : "")}
             aria-label="Collection"
             onClick={showDropdown}
         >
