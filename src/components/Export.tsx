@@ -13,6 +13,7 @@ import {
     getDataForJSON,
 } from "../json-export"
 import CollectionSelect from "./CollectionSelect"
+import DropdownButton from "./DropdownButton"
 
 const DRAFT_FIELD_LABEL = "Status"
 
@@ -45,7 +46,7 @@ export default function Export({
     selectCollection: (collectionId: string) => void
     goBack: () => void
 }) {
-    const optionsButtonRef = useRef<HTMLButtonElement>(null)
+    const optionsButtonRef = useRef<HTMLDivElement>(null)
     const [enabledFields, setEnabledFields] = useState<Record<string, boolean>>({})
 
     useEffect(() => {
@@ -166,6 +167,18 @@ export default function Export({
         )
     }
 
+    const enabledFieldCount = Object.values(enabledFields).filter(Boolean).length
+    const totalFieldCount = Object.keys(enabledFields).length
+    const disabledFieldCount = totalFieldCount - enabledFieldCount
+    const fieldsStatsLabel =
+        totalFieldCount === 0
+            ? ""
+            : enabledFieldCount === totalFieldCount
+              ? "All Enabled"
+              : enabledFieldCount === 0
+                ? "All Disabled"
+                : `${disabledFieldCount} Disabled`
+
     return (
         <div className="export-collection">
             <div className="back-button" onClick={() => goBack()}>
@@ -192,9 +205,13 @@ export default function Export({
                     isLoading={isLoading}
                     selectCollection={selectCollection}
                 />
-                <button ref={optionsButtonRef} onClick={onOptionsClick} className="two-columns">
-                    Fields
-                </button>
+                <DropdownButton
+                    ref={optionsButtonRef}
+                    className="two-columns"
+                    label="Select Fields"
+                    secondaryLabel={fieldsStatsLabel}
+                    onClick={onOptionsClick}
+                />
                 <button disabled={!selectedCollection} onClick={copyJSONtoClipboard}>
                     Copy
                 </button>
