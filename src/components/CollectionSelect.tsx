@@ -49,6 +49,10 @@ export default function CollectionSelect({
         )
     }
 
+    if (!isLoading && collections.length <= 1) {
+        return null
+    }
+
     const displayName = selectedCollection?.name ?? (isLoading ? "Loading collections…" : "Select Collection…")
 
     return (

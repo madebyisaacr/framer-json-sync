@@ -232,6 +232,7 @@ body[data-framer-theme="dark"] {
     cursor: pointer;
     color: var(--framer-color-text-tertiary);
     place-self: flex-start;
+    user-select: none;
 }
 
 .back-button:hover {
