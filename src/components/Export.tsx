@@ -26,7 +26,7 @@ const FIELD_TYPE_NAMES: Record<string, string> = {
     link: "Link",
     date: "Date",
     file: "File",
-    enum: "Option",
+    enum: " Option", // The space prevents it from displaying as ⌥
     collectionReference: "Reference",
     multiCollectionReference: "Multi-Reference",
     array: "Gallery",
@@ -118,7 +118,7 @@ export default function Export({
 
         const allEnabled = menuFields.every(field => enabledFields[field.id] !== false)
         const allDisabled = menuFields.every(field => enabledFields[field.id] === false)
-        
+
         console.log(menuFields.map(field => `${field.type} ${FIELD_TYPE_NAMES[field.type] ?? field.type}`))
 
         void framer.showContextMenu(

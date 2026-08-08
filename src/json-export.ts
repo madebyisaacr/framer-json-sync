@@ -146,9 +146,8 @@ export function getDataForJSON(
             [slugFieldName ?? "Slug"]: item.slug,
         }
 
-        // Add draft status if enabled and the item is a draft
-        if (includeDraftStatus && item.draft) {
-            row[DRAFT_FIELD_ID] = true
+        if (includeDraftStatus) {
+            row[DRAFT_FIELD_ID] = Boolean(item.draft)
         }
 
         for (const field of supportedFields) {
