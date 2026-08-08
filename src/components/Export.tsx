@@ -2,7 +2,16 @@ import type { Collection } from "@framer/plugin"
 
 import { framer } from "@framer/plugin"
 import { useEffect, useRef, useState } from "react"
-import { DRAFT_FIELD_ID, exportCollectionAsJSON, convertCollectionToJSON, getDataForJSON } from "../json-export"
+import {
+    DRAFT_FIELD_ID,
+    CREATED_AT_FIELD_ID,
+    EDITED_AT_FIELD_ID,
+    CREATED_AT_LABEL,
+    EDITED_AT_LABEL,
+    exportCollectionAsJSON,
+    convertCollectionToJSON,
+    getDataForJSON,
+} from "../json-export"
 import CollectionSelect from "./CollectionSelect"
 
 const DRAFT_FIELD_LABEL = "Status"
@@ -37,6 +46,8 @@ export default function Export({
                 }
             }
             next[DRAFT_FIELD_ID] = items.some(item => item.draft)
+            next[CREATED_AT_FIELD_ID] = true
+            next[EDITED_AT_FIELD_ID] = true
             setEnabledFields(next)
         })
     }, [selectedCollection])
@@ -85,6 +96,8 @@ export default function Export({
             ...fields.slice(0, 1).map(field => ({ id: field.id, label: field.name })),
             { id: DRAFT_FIELD_ID, label: DRAFT_FIELD_LABEL },
             ...fields.slice(1).map(field => ({ id: field.id, label: field.name })),
+            { id: CREATED_AT_FIELD_ID, label: CREATED_AT_LABEL },
+            { id: EDITED_AT_FIELD_ID, label: EDITED_AT_LABEL },
         ]
 
         const allEnabled = menuFields.every(field => enabledFields[field.id] !== false)

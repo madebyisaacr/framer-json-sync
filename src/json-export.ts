@@ -3,6 +3,10 @@ import type { Collection, Field, CollectionItem, ArrayItem } from "@framer/plugi
 import { isColorStyle } from "@framer/plugin"
 
 export const DRAFT_FIELD_ID = ":draft"
+export const CREATED_AT_FIELD_ID = ":createdAt"
+export const EDITED_AT_FIELD_ID = ":editedAt"
+export const CREATED_AT_LABEL = "Created"
+export const EDITED_AT_LABEL = "Edited"
 
 function downloadFile(file: File) {
     const filename = file.name
@@ -114,6 +118,11 @@ function getDataForField(field: Field, item: CollectionItem | ArrayItem) {
     }
 }
 
+function getTimestampValue(value: string | null | undefined): string | null {
+    if (value == null || value === "") return null
+    return value
+}
+
 export function getDataForJSON(
     slugFieldName: string | null,
     fields: Field[],
@@ -122,6 +131,13 @@ export function getDataForJSON(
 ): Record<string, any>[] {
     const supportedFields = fields.filter(field => isFieldSupported(field) && enabledFields?.[field.id] !== false)
     const includeDraftStatus = enabledFields?.[DRAFT_FIELD_ID] !== false
+    const includeCreatedAt = enabledFields?.[CREATED_AT_FIELD_ID] !== false
+    const includeEditedAt = enabledFields?.[EDITED_AT_FIELD_ID] !== false
+
+    const fieldNames = new Set(fields.map(field => field.name))
+    const createdAtKey = fieldNames.has(CREATED_AT_LABEL) ? CREATED_AT_FIELD_ID : CREATED_AT_LABEL
+    const editedAtKey = fieldNames.has(EDITED_AT_LABEL) ? EDITED_AT_FIELD_ID : EDITED_AT_LABEL
+
     const result: Record<string, any>[] = []
 
     // Add all the data rows.
@@ -138,6 +154,14 @@ export function getDataForJSON(
         for (const field of supportedFields) {
             const data = getDataForField(field, item)
             row[field.name] = data
+        }
+
+        if (includeCreatedAt) {
+            row[createdAtKey] = getTimestampValue(item.createdAt)
+        }
+
+        if (includeEditedAt) {
+            row[editedAtKey] = getTimestampValue(item.updatedAt)
         }
 
         result.push(row)
