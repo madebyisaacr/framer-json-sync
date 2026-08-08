@@ -12,10 +12,12 @@ import {
     convertCollectionToJSON,
     getDataForJSON,
 } from "../json-export"
+import { getPluginDataString, setPluginDataString } from "../plugin-data"
 import CollectionSelect from "./CollectionSelect"
 import DropdownButton from "./DropdownButton"
 
 const DRAFT_FIELD_LABEL = "Status"
+const DISABLED_EXPORT_FIELDS_KEY = "disabledExportFields"
 
 const FIELD_TYPE_NAMES: Record<string, string> = {
     boolean: "Toggle",
@@ -55,19 +57,47 @@ export default function Export({
             return
         }
 
-        void Promise.all([selectedCollection.getFields(), selectedCollection.getItems()]).then(([fields, items]) => {
+        void Promise.all([
+            selectedCollection.getFields(),
+            selectedCollection.getItems(),
+            getPluginDataString(selectedCollection, DISABLED_EXPORT_FIELDS_KEY),
+        ]).then(([fields, items, disabledFieldsData]) => {
+            const disabledIds = new Set(disabledFieldsData ? disabledFieldsData.split(",").filter(Boolean) : [])
+            const hasSavedPreferences = disabledFieldsData !== null
+
             const next: Record<string, boolean> = {}
             for (const field of fields) {
                 if (field.type !== "divider" && field.type !== "unsupported") {
-                    next[field.id] = true
+                    next[field.id] = !disabledIds.has(field.id)
                 }
             }
-            next[DRAFT_FIELD_ID] = items.some(item => item.draft)
-            next[CREATED_AT_FIELD_ID] = true
-            next[EDITED_AT_FIELD_ID] = true
+            next[DRAFT_FIELD_ID] = hasSavedPreferences
+                ? !disabledIds.has(DRAFT_FIELD_ID)
+                : items.some(item => item.draft)
+            next[CREATED_AT_FIELD_ID] = !disabledIds.has(CREATED_AT_FIELD_ID)
+            next[EDITED_AT_FIELD_ID] = !disabledIds.has(EDITED_AT_FIELD_ID)
             setEnabledFields(next)
         })
     }, [selectedCollection])
+
+    const updateEnabledFields = (
+        update: Record<string, boolean> | ((prev: Record<string, boolean>) => Record<string, boolean>)
+    ) => {
+        setEnabledFields(prev => {
+            const next = typeof update === "function" ? update(prev) : update
+
+            if (selectedCollection && framer.isAllowedTo("Collection.setPluginData")) {
+                const disabledFieldIds = Object.entries(next)
+                    .filter(([, enabled]) => !enabled)
+                    .map(([id]) => id)
+                    .join(",")
+
+                void setPluginDataString(selectedCollection, DISABLED_EXPORT_FIELDS_KEY, disabledFieldIds)
+            }
+
+            return next
+        })
+    }
 
     const exportJSON = async () => {
         if (!selectedCollection) return
@@ -120,8 +150,6 @@ export default function Export({
         const allEnabled = menuFields.every(field => enabledFields[field.id] !== false)
         const allDisabled = menuFields.every(field => enabledFields[field.id] === false)
 
-        console.log(menuFields.map(field => `${field.type} ${FIELD_TYPE_NAMES[field.type] ?? field.type}`))
-
         void framer.showContextMenu(
             [
                 ...(!allEnabled
@@ -129,7 +157,7 @@ export default function Export({
                           {
                               label: "Select All",
                               onAction: () => {
-                                  setEnabledFields(Object.fromEntries(menuFields.map(field => [field.id, true])))
+                                  updateEnabledFields(Object.fromEntries(menuFields.map(field => [field.id, true])))
                               },
                           },
                       ]
@@ -139,7 +167,7 @@ export default function Export({
                           {
                               label: "Deselect All",
                               onAction: () => {
-                                  setEnabledFields(Object.fromEntries(menuFields.map(field => [field.id, false])))
+                                  updateEnabledFields(Object.fromEntries(menuFields.map(field => [field.id, false])))
                               },
                           },
                       ]
@@ -150,7 +178,7 @@ export default function Export({
                     secondaryLabel: FIELD_TYPE_NAMES[field.type] ?? field.type,
                     checked: enabledFields[field.id] !== false,
                     onAction: () => {
-                        setEnabledFields(prev => ({
+                        updateEnabledFields(prev => ({
                             ...prev,
                             [field.id]: !prev[field.id],
                         }))
